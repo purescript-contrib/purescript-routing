@@ -1,0 +1,27 @@
+{
+  "name": "purescript-routing",
+  "version": "0.1.0",
+  "description": "Routing lib for purescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slamdata/purescripot-routing.git"
+  },
+  "keywords": [
+    "purescript",
+    "routing"
+  ],
+  "author": "Maxim Zimaliev <zimaliev@gmail.com>",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/slamdata/purescripot-routing/issues"
+  },
+  "homepage": "https://github.com/slamdata/purescripot-routing",
+  "dependencies": {
+    "gulp": "^3.8.11",
+    "mandragora-bucket": "^0.1.12"
+  }
+}
