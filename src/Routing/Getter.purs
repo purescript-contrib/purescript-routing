@@ -83,8 +83,12 @@ contains (Router parent) (Router child) =
     lift $ put' M.empty
     c <- P.optionMaybe child
     pure $ case c of
-      Nothing -> Tuple pHead pTail
-      Just (Tuple cHead []) -> Tuple cHead (pHead:pTail)
+      -- when name == "" we don't include match results for
+      -- this router since it's one router
+      Just (Tuple cHead@(Tuple name params) []) | name /= "" ->
+        Tuple cHead (pHead:pTail)
+      _ -> Tuple pHead pTail
+
 
 -- | Main driver of routing 
 foreign import hashChanged """
@@ -149,9 +153,22 @@ routes route callback =
           rs <- traverse fromMatch matches
           pure $ Tuple r rs
 
+zeroR :: Router
+zeroR = Router $ P.fail "zero router always fails"
+
+oneR :: Router
+oneR = Router $ pure $ Tuple (Tuple "" M.empty) []
+
 -- | Router is semigroup over `or`
 instance semigroupRouter :: Semigroup Router where
   (<>) = or
 -- | Router is monoid with always failing router as `mempty`
 instance monoidRouter :: Monoid Router where
   mempty = Router $ P.fail "mempty"
+
+
+instance semiringRouter :: Semiring Router where
+  (+) = or
+  (*) = contains
+  zero = zeroR
+  one = oneR
