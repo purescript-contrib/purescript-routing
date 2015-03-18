@@ -1,6 +1,5 @@
 {
   "name": "purescript-routing",
-  "version": "0.1.0",
   "homepage": "https://github.com/slamdata/purescript-routing",
   "authors": [
     "Maxim Zimaliev <zimaliev@yandex.ru>"
