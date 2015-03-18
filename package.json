@@ -1,6 +1,5 @@
 {
     "name": "purescript-routing",
-    "version": "0.1.0",
     "description": "Routing lib for purescript",
     "private": true,
     "repository": {
