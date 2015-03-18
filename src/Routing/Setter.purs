@@ -10,8 +10,11 @@ function setHash(hash) {
 }
 """ :: forall e. String -> Eff e Unit
 
+
+-- | Class of types that can be converted to hashes 
 class RouteState a where
   toHash :: a -> String
 
+-- | wrapper over `setHash` that uses `RouteState`
 setRouteState :: forall r e. (RouteState r) => r -> Eff e Unit
 setRouteState r = setHash $ toHash r

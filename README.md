@@ -26,22 +26,22 @@ When hash changes from something to `file/123/read` messages of `file` routing
 and `read` will be produced. When hash changes from `file/123` to `file/123/read` 
 only one message will be produced. 
 
-To get this messages it's necessary to define instance of `RouteMsg` i.e.
+To get this messages it's necessary to define instance of `RouteDiff` i.e.
 ```purescript
-instance tstRouteMsg :: RouteMsg Test where
-  toMsg (Tuple "write" _) = Just Write
-  toMsg (Tuple "read" _) = Just Read
-  toMsg (Tuple "file" map) = do
+instance tstRouteDiff :: RouteDiff Test where
+  fromMatch (Tuple "write" _) = Just Write
+  fromMatch (Tuple "read" _) = Just Read
+  fromMatch (Tuple "file" map) = do
     f <- lookup "id" map
     pure $ File f 
-  toMsg (Tuple "notebook" map) = do
+  fromMatch (Tuple "notebook" map) = do
     foo <- readFloat <$> lookup "foo" map
     bar <- readFloat <$> lookup "bar" map
     if isNaN foo || isNaN bar then
       Nothing
       else
       pure $ Notebook foo bar
-  toMsg _  = Nothing
+  fromMatch _  = Nothing
 ```
 
 then you can to use it with something like that 

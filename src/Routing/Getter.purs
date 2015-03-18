@@ -1,17 +1,20 @@
+-- | Getting `hashchange` events and wraps 
+-- | `oldURL` and `newURL` to RouteMatch
+-- | or RouteDiff instances 
 module Routing.Getter (
   route,
   or,
   contains,
-  runRoute,
+  runRouter,
   hashes,
-  checks,
+  matches,
   routes,
   PErr(),
-  Route(),
-  RouteMsg,
-  toMsg,
-  Check(),
-  Checks()
+  Router(),
+  RouteDiff,
+  fromMatch,
+  RouteMatch(),
+  RouteMatches()
   ) where
 
 import Data.Either
@@ -22,6 +25,7 @@ import Control.Monad.State
 import Control.Monad.Trans
 import Control.Monad.State.Class
 import Control.Monad.Error
+import Data.Monoid
 import Control.Apply ((*>))
 import Control.Alt ((<|>))
 import Data.String.Regex (replace, noFlags, Regex(), regex)
@@ -34,42 +38,55 @@ import qualified Text.Parsing.Parser.Combinators as P
 
 import Routing.Parser (parse, template, StateObj())
 
-type RouteParser = P.ParserT String StateObj Checks
-type Check = Tuple String (M.StrMap String)
-type Checks = Tuple Check [Check]
-type PErr a = Either P.ParseError a 
-newtype Route = Route RouteParser
+-- | Shortcut for parser
+type RouteParser = P.ParserT String StateObj RouteMatches
+-- | Main data produced by matching hash
+-- | Tuple routeName mappedTemplateArgumentsValues
+type RouteMatch = Tuple String (M.StrMap String)
+-- | nonempty list of matches
+type RouteMatches = Tuple RouteMatch [RouteMatch]
+-- | Shortcut for parsing errors
+type PErr a = Either P.ParseError a
+-- | 
+newtype Router = Router RouteParser
 
-runRoute :: String -> Route -> PErr Checks
-runRoute s (Route p) =
-  case runState (P.runParserT s p) M.empty of
-    Tuple lr state -> lr
+-- | check if `s` matches router
+runRouter :: String -> Router -> PErr RouteMatches
+runRouter s (Router p) =
+  evalState (P.runParserT s p) M.empty 
 
-             
-route :: String -> String -> PErr Route
+-- | define router by name and template
+route :: String -> String -> PErr Router
 route name templateStr = do
   parser <- parse <$> P.runParser templateStr template
   let p = parser *> lift get >>= \res ->
         pure $ Tuple (Tuple name res) []
-  pure $ Route p
+  pure $ Router p
+  
+-- | construct router from two routers
+-- | will match first **or** second
+or :: Router -> Router -> Router
+or (Router one) (Router two) =
+  Router $ one <|> two
 
-or :: Route -> Route -> Route
-or (Route one) (Route two) =
-  Route $ one <|> two
-
-contains :: Route -> Route -> Route
-contains (Route parent) (Route child) =
+-- | construct router from two routers
+-- | will try to match first router and
+-- | if it matches try to match second
+-- | produced result of matching first if
+-- | second fails or aggregated result otherwise
+contains :: Router -> Router -> Router
+contains (Router parent) (Router child) =
   let put' :: M.StrMap String -> StateObj Unit
       put' = put 
-  in Route $ do
-    Tuple pHead parentChecks <- parent
+  in Router $ do
+    Tuple pHead pTail <- parent
     lift $ put' M.empty
     c <- P.optionMaybe child
     pure $ case c of
-      Nothing -> Tuple pHead parentChecks
-      Just (Tuple cHead []) -> Tuple cHead (pHead:parentChecks)
+      Nothing -> Tuple pHead pTail
+      Just (Tuple cHead []) -> Tuple cHead (pHead:pTail)
 
-
+-- | Main driver of routing 
 foreign import hashChanged """
 function hashChanged(handler) {
   return function() {
@@ -82,42 +99,59 @@ function hashChanged(handler) {
 }
 """ :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 
-rgx :: Regex
-rgx = regex "^[^#]+#" noFlags 
-
+-- | stream of hashes without hash symbol
 hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 hashes cb =
   hashChanged $ \old new -> do
-    cb (replace rgx "" old) (replace rgx "" new)
+    cb (dropHash old) (dropHash new)
+  where dropHash h = replace (regex "^[^#]+#" noFlags) "" h
 
-class RouteMsg a where 
-  toMsg :: Check -> Maybe a
+-- | Class of types that can be produced by matching
+-- | diffs of hashes
+class RouteDiff a where 
+  fromMatch :: RouteMatch -> Maybe a
 
-instance strMap :: RouteMsg (Tuple String (M.StrMap String)) where
-  toMsg = Just
+-- | Tuple name argValMap is just RouteMatch
+instance strMap :: RouteDiff (Tuple String (M.StrMap String)) where
+  fromMatch = Just
 
-checks :: forall e. Route -> (Checks -> Eff e Unit) -> Eff e Unit
-checks route callback =  
+-- | Stream of `RouteMatch`es 
+matches :: forall e. Router -> (RouteMatches -> Eff e Unit) -> Eff e Unit
+matches route callback =  
   hashes $ \old new -> do
     let diff = do
-          Tuple headOld olds <- runRoute old route
-          Tuple headNew news <- runRoute new route
+          -- Get old url matches 
+          Tuple headOld olds <- runRouter old route
+          -- Get new url matches
+          Tuple headNew news <- runRouter new route
+          -- if new url is substate of old url
           case findIndex ((==) headOld) news of
             -1 -> pure $ Tuple headNew news
+            -- find depth of substate and return only new part 
             i -> if drop i news == (headOld:olds) then
                    pure $ Tuple headNew (take i news)
                    else
                    pure $ Tuple headNew news 
     case diff of
-      Right checks -> callback checks
+      -- If router matches hash then callback
+      Right matches -> callback matches
+      -- Otherwise do nothing
       _ -> pure unit
 
-routes :: forall e a. (RouteMsg a) =>
-          Route -> (Tuple a [a] -> Eff e Unit) -> Eff e Unit
+-- Stream of decoded messages. i.e. in case of
+-- purescript-halogen `i` from `HTML a i`
+routes :: forall e a. (RouteDiff a) =>
+          Router -> (Tuple a [a] -> Eff e Unit) -> Eff e Unit
 routes route callback =
-  checks route $ \(Tuple check checks) -> 
+  matches route $ \(Tuple match matches) -> 
     maybe (pure unit) callback do
-          r <- toMsg check
-          rs <- traverse toMsg checks
+          r <- fromMatch match
+          rs <- traverse fromMatch matches
           pure $ Tuple r rs
 
+-- | Router is semigroup over `or`
+instance semigroupRouter :: Semigroup Router where
+  (<>) = or
+-- | Router is monoid with always failing router as `mempty`
+instance monoidRouter :: Monoid Router where
+  mempty = Router $ P.fail "mempty"

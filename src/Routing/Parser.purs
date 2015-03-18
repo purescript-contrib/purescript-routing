@@ -24,11 +24,14 @@ import qualified Data.StrMap as M
 
 
 -- | Ast of parsed route template
-data TemplateEl = Placeholder String | Key String | Ask [String]
+data TemplateEl = Placeholder String | Variable String | Query [String]
 -- | shortcut
 type Template = [TemplateEl]
 -- | shortcut 
 type StateObj = State (M.StrMap String)
+
+
+foreign import decodeURIComponent :: String -> String
 
 -- | Parses placeholder names
 name :: forall m. (Monad m) => P.ParserT String m String
@@ -36,7 +39,7 @@ name = do
   strs <- many $ P.noneOf [":", "&", "?"]
   case strs of
     [] -> P.fail "empty name"
-    cs -> return (fold cs)
+    cs -> return $ decodeURIComponent (fold cs)
     
 -- | parses variables 
 variable :: forall m. (Monad m) => P.ParserT String m String
@@ -44,7 +47,7 @@ variable = do
   strs <- many $ P.noneOf [":", "&", "/", "?", "="]
   case strs of
     [] -> P.fail "empty var"
-    cs -> return (fold cs)
+    cs -> return $ decodeURIComponent (fold cs)
     
 -- | parses placeholder
 placeholder :: forall m. (Monad m) => P.ParserT String m TemplateEl
@@ -54,7 +57,7 @@ placeholder =  Placeholder <$> name
 colon :: forall m. (Monad m) => P.ParserT String m TemplateEl
 colon = do
   P.string ":"
-  Key <$> variable
+  Variable <$> variable
 
 -- | parses variables in `?foo&bar&baz`
 query :: forall m. (Monad m) => P.ParserT String m TemplateEl
@@ -64,7 +67,7 @@ query = do
     variable
   case strs of
     [] -> P.fail "not an query string"
-    qs -> pure $ Ask qs
+    qs -> pure $ Query qs
 
 -- | parses all template elements
 template :: forall m. (Monad m) => P.ParserT String m Template
@@ -84,33 +87,43 @@ parse template =
       get'' = get
       
     in case template of
+    -- ast is over 
     [] -> pure unit
-    
-    (Key str):ts -> do
+    (Variable str):ts -> do
+      -- lookup this variable setted in state
+      -- fail if it has been setted
       g <- lift $ get' str
       v <- variable
       case g of
         Nothing -> do
+          -- insert key val pair to state
           lift $ modify (M.insert str v)
           parse ts
-        _ -> P.fail $ "duplicated key '" <> str <> "' is unmatching"
+        _ -> P.fail $ "Parsing route template error: duplicated key " <>
+             show str 
         
-    (Ask strs):ts -> do
+    (Query strs):ts -> do
       P.string "?"
       res <- many $ do
+        -- consume "&" or nothing
         (P.try $ P.string "&") <|> pure ""
+        -- find one of template args 
         s <- P.choice $ P.try <<< P.string <$> strs
         P.string "="
+        -- check if this variable was setted before
         v <- variable
         g <- lift $ get' s
-        lift $ modify (M.insert s v)
         case g of
-          Nothing -> 
+          Nothing -> do
+            lift $ modify (M.insert s v)
             pure v
           _ -> 
-            P.fail "query contains duplicated keys"
+            P.fail $ "Parsing route template error: duplicated key" <>
+            show v <> " in query: " <> show strs 
+            
       parse ts
       
     (Placeholder str):ts -> do
+      -- consume placeholder
       P.string str
       parse ts

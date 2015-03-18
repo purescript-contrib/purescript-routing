@@ -14,7 +14,7 @@ import Debug.Foreign
 import Routing.Setter
 import Routing.Getter
 
-routing :: PErr Route
+routing :: PErr Router
 routing = do
   one <- route "notebook" "notebook?foo&bar"
   two <- route "file" "file/:id"
@@ -37,26 +37,26 @@ instance tstStTestState :: RouteState TestState where
                                    "&bar=" <> show bar
   toHash (FileState id read) = "file/" <> id <> if read then "read" else "write"
 
-instance tstRouteMsg :: RouteMsg Test where
-  toMsg (Tuple "write" _) = Just Write
-  toMsg (Tuple "read" _) = Just Read
-  toMsg (Tuple "file" map) = do
+instance tstRouteDiff :: RouteDiff Test where
+  fromMatch (Tuple "write" _) = Just Write
+  fromMatch (Tuple "read" _) = Just Read
+  fromMatch (Tuple "file" map) = do
     f <- lookup "id" map
     pure $ File f 
-  toMsg (Tuple "notebook" map) = do
+  fromMatch (Tuple "notebook" map) = do
     foo <- readFloat <$> lookup "foo" map
     bar <- readFloat <$> lookup "bar" map
     if isNaN foo || isNaN bar then
       Nothing
       else
       pure $ Notebook foo bar
-  toMsg _  = Nothing
+  fromMatch _  = Nothing
 
 
 main = do
   fprint $ do
     r <- routing
-    runRoute "notebook?foo=1&bar=2" r
+    runRouter "notebook?foo=1&bar=2" r
   let fp :: Tuple Test [Test] -> Eff _ Unit
       fp t = void $ fprint t
   case routing of
