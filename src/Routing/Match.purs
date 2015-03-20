@@ -14,9 +14,8 @@ import qualified Data.StrMap as M
 import Routing.Parser
 import Routing.Types
 import Routing.Match.Class
-import Routing.Match.Error
 
-newtype Match a = Match (Route -> Either RoutingError (Tuple Route a))
+newtype Match a = Match (Route -> Either String (Tuple Route a))
 
 instance matchMatchClass :: MatchClass Match where
   lit input = Match $ \route ->
@@ -74,7 +73,7 @@ instance matchMonad :: Monad Match
 instance matchMonadPlus :: MonadPlus Match
 
 
-runMatch :: forall a. Match a -> Route -> Either RoutingError a
+runMatch :: forall a. Match a -> Route -> Either String a
 runMatch (Match fn) route = snd <$> fn route
                    
     

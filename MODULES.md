@@ -33,7 +33,7 @@ matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 #### `matchHash`
 
 ``` purescript
-matchHash :: forall a. Match a -> String -> Either RoutingError a
+matchHash :: forall a. Match a -> String -> Either String a
 ```
 
 
@@ -44,7 +44,7 @@ matchHash :: forall a. Match a -> String -> Either RoutingError a
 
 ``` purescript
 newtype Match a
-  = Match (Route -> Either RoutingError (Tuple Route a))
+  = Match (Route -> Either String (Tuple Route a))
 ```
 
 
@@ -121,7 +121,7 @@ instance matchMonadPlus :: MonadPlus Match
 #### `runMatch`
 
 ``` purescript
-runMatch :: forall a. Match a -> Route -> Either RoutingError a
+runMatch :: forall a. Match a -> Route -> Either String a
 ```
 
 
@@ -209,73 +209,6 @@ num :: forall f. (MatchClass f) => String -> f Number
 
 ``` purescript
 bool :: forall f. (MatchClass f) => String -> f Boolean
-```
-
-
-
-## Module Routing.Match.Error
-
-#### `RoutingError`
-
-``` purescript
-newtype RoutingError
-  = RoutingError [[String]]
-```
-
-
-#### `orRE`
-
-``` purescript
-orRE :: RoutingError -> RoutingError -> RoutingError
-```
-
-
-#### `zeroRE`
-
-``` purescript
-zeroRE :: RoutingError
-```
-
-
-#### `andRE`
-
-``` purescript
-andRE :: RoutingError -> RoutingError -> RoutingError
-```
-
-
-#### `oneRE`
-
-``` purescript
-oneRE :: RoutingError
-```
-
-
-#### `routingErrorSemigroup`
-
-``` purescript
-instance routingErrorSemigroup :: Semigroup RoutingError
-```
-
-
-#### `routingErrorMonoid`
-
-``` purescript
-instance routingErrorMonoid :: Monoid RoutingError
-```
-
-
-#### `routingErrorSemiring`
-
-``` purescript
-instance routingErrorSemiring :: Semiring RoutingError
-```
-
-
-#### `routingErrorError`
-
-``` purescript
-instance routingErrorError :: Error RoutingError
 ```
 
 

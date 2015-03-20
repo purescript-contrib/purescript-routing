@@ -7,8 +7,6 @@ import qualified Data.String.Regex as R
 
 import Routing.Parser
 import Routing.Match
-import Routing.Match.Error
-
 
 foreign import hashChanged """
 function hashChanged(handler) {
@@ -40,5 +38,5 @@ matches routing cb = hashes $ \old new ->
   in either (const $ pure unit) (cb fst) $ mr new 
 
 
-matchHash :: forall a. Match a -> String -> Either RoutingError a
+matchHash :: forall a. Match a -> String -> Either String a
 matchHash matcher hash = runMatch matcher $ parse hash
