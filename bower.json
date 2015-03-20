@@ -19,16 +19,15 @@
   ],
   "dependencies": {
     "purescript-strings": "~0.4.3",
-    "purescript-parsing": "~0.3.1",
     "purescript-maps": "~0.3.2",
-    "purescript-debug-foreign": "~0.0.4",
     "purescript-control": "~0.2.2",
     "purescript-transformers": "~0.5.1",
     "purescript-arrays": "~0.3.3",
-    "purescript-globals": "~0.1.5",
     "purescript-monoid": "~0.2.0"
   },
   "devDependencies": {
-    "purescript-timers": "~0.0.8"
+    "purescript-timers": "~0.0.8",
+    "purescript-debug-foreign": "~0.0.4",
+    "purescript-globals": "~0.1.5"
   }
 }
