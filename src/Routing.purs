@@ -27,9 +27,6 @@ hashes cb =
     cb (dropHash old) (dropHash new)
   where dropHash h = R.replace (R.regex "^[^#]*#" R.noFlags) "" h
 
-foreign import log """
-function log(a) {return function() {console.log(a)}}
-""" :: forall a e. a -> Eff e Unit
 
 matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 matches routing cb = hashes $ \old new -> 

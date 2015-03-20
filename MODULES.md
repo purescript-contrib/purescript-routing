@@ -16,13 +16,6 @@ hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 ```
 
 
-#### `log`
-
-``` purescript
-log :: forall a e. a -> Eff e Unit
-```
-
-
 #### `matches`
 
 ``` purescript
