@@ -14,7 +14,7 @@ import Debug.Foreign
 import Routing.Setter
 import Routing.Getter
 
-routing :: PErr Router
+routing :: PErr Router 
 routing = do
   one <- route "notebook" "notebook?foo&bar"
   two <- route "file" "file/:id"
