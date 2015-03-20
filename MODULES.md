@@ -1,62 +1,11 @@
 # Module Documentation
 
-## Module Routing.Getter
+## Module Routing
 
-
-
-#### `Check`
+#### `hashChanged`
 
 ``` purescript
-type Check = Tuple String (M.StrMap String)
-```
-
-
-#### `Checks`
-
-``` purescript
-type Checks = Tuple Check [Check]
-```
-
-
-#### `PErr`
-
-``` purescript
-type PErr a = Either P.ParseError a
-```
-
-
-#### `Route`
-
-``` purescript
-newtype Route
-```
-
-
-#### `runRoute`
-
-``` purescript
-runRoute :: String -> Route -> PErr Checks
-```
-
-
-#### `route`
-
-``` purescript
-route :: String -> String -> PErr Route
-```
-
-
-#### `or`
-
-``` purescript
-or :: Route -> Route -> Route
-```
-
-
-#### `contains`
-
-``` purescript
-contains :: Route -> Route -> Route
+hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 ```
 
 
@@ -67,87 +16,127 @@ hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 ```
 
 
-#### `RouteMsg`
+#### `log`
 
 ``` purescript
-class RouteMsg a where
-  toMsg :: Check -> Maybe a
+log :: forall a e. a -> Eff e Unit
 ```
 
 
-#### `strMap`
+#### `matches`
 
 ``` purescript
-instance strMap :: RouteMsg (Tuple String (M.StrMap String))
+matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 ```
 
 
-#### `checks`
+#### `matchHash`
 
 ``` purescript
-checks :: forall e. Route -> (Checks -> Eff e Unit) -> Eff e Unit
+matchHash :: forall a. Match a -> String -> Either RoutingError a
 ```
 
 
-#### `routes`
+
+## Module Routing.Match
+
+#### `Match`
 
 ``` purescript
-routes :: forall e a. (RouteMsg a) => Route -> (Tuple a [a] -> Eff e Unit) -> Eff e Unit
+newtype Match a
+  = Match (Route -> Either RoutingError (Tuple Route a))
+```
+
+
+#### `matchMatchClass`
+
+``` purescript
+instance matchMatchClass :: MatchClass Match
+```
+
+
+#### `matchFunctor`
+
+``` purescript
+instance matchFunctor :: Functor Match
+```
+
+
+#### `matchAlt`
+
+``` purescript
+instance matchAlt :: Alt Match
+```
+
+
+#### `matchPlus`
+
+``` purescript
+instance matchPlus :: Plus Match
+```
+
+
+#### `matchAlternative`
+
+``` purescript
+instance matchAlternative :: Alternative Match
+```
+
+
+#### `matchApply`
+
+``` purescript
+instance matchApply :: Apply Match
+```
+
+
+#### `matchApplicative`
+
+``` purescript
+instance matchApplicative :: Applicative Match
+```
+
+
+#### `matchBind`
+
+``` purescript
+instance matchBind :: Bind Match
+```
+
+
+#### `matchMonad`
+
+``` purescript
+instance matchMonad :: Monad Match
+```
+
+
+#### `matchMonadPlus`
+
+``` purescript
+instance matchMonadPlus :: MonadPlus Match
+```
+
+
+#### `runMatch`
+
+``` purescript
+runMatch :: forall a. Match a -> Route -> Either RoutingError a
 ```
 
 
 
 ## Module Routing.Parser
 
-
-
-#### `TemplateEl`
-
-``` purescript
-data TemplateEl
-  = Placeholder String
-  | Key String
-  | Ask [String]
-```
-
-Ast of parsed route template
-
-#### `Template`
-
-``` purescript
-type Template = [TemplateEl]
-```
-
-shortcut
-
-#### `StateObj`
-
-``` purescript
-type StateObj = State (M.StrMap String)
-```
-
-shortcut 
-
-#### `template`
-
-``` purescript
-template :: forall m. (Monad m) => P.ParserT String m Template
-```
-
-parses all template elements
-
 #### `parse`
 
 ``` purescript
-parse :: Template -> P.ParserT String StateObj Unit
+parse :: String -> Route
 ```
 
-Produce parsers of uri from template strings
 
 
 ## Module Routing.Setter
-
-
 
 #### `setHash`
 
@@ -163,11 +152,130 @@ class RouteState a where
   toHash :: a -> String
 ```
 
+Class of types that can be converted to hashes 
 
 #### `setRouteState`
 
 ``` purescript
 setRouteState :: forall r e. (RouteState r) => r -> Eff e Unit
+```
+
+wrapper over `setHash` that uses `RouteState`
+
+
+## Module Routing.Types
+
+#### `RoutePart`
+
+``` purescript
+data RoutePart
+  = Path String
+  | Query (M.StrMap String)
+```
+
+
+#### `Route`
+
+``` purescript
+type Route = [RoutePart]
+```
+
+
+
+## Module Routing.Match.Class
+
+#### `MatchClass`
+
+``` purescript
+class (MonadPlus f) <= MatchClass f where
+  lit :: String -> f Unit
+  var :: f String
+  param :: String -> f String
+  fail :: forall a. String -> f a
+```
+
+
+
+## Module Routing.Match.Combinators
+
+#### `num`
+
+``` purescript
+num :: forall f. (MatchClass f) => String -> f Number
+```
+
+
+#### `bool`
+
+``` purescript
+bool :: forall f. (MatchClass f) => String -> f Boolean
+```
+
+
+
+## Module Routing.Match.Error
+
+#### `RoutingError`
+
+``` purescript
+newtype RoutingError
+  = RoutingError [[String]]
+```
+
+
+#### `orRE`
+
+``` purescript
+orRE :: RoutingError -> RoutingError -> RoutingError
+```
+
+
+#### `zeroRE`
+
+``` purescript
+zeroRE :: RoutingError
+```
+
+
+#### `andRE`
+
+``` purescript
+andRE :: RoutingError -> RoutingError -> RoutingError
+```
+
+
+#### `oneRE`
+
+``` purescript
+oneRE :: RoutingError
+```
+
+
+#### `routingErrorSemigroup`
+
+``` purescript
+instance routingErrorSemigroup :: Semigroup RoutingError
+```
+
+
+#### `routingErrorMonoid`
+
+``` purescript
+instance routingErrorMonoid :: Monoid RoutingError
+```
+
+
+#### `routingErrorSemiring`
+
+``` purescript
+instance routingErrorSemiring :: Semiring RoutingError
+```
+
+
+#### `routingErrorError`
+
+``` purescript
+instance routingErrorError :: Error RoutingError
 ```
 
 
