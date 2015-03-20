@@ -10,15 +10,14 @@ import Debug.Foreign
 import Routing
 import Routing.Match
 import Routing.Match.Class
-import Routing.Match.Combinators
 
 data FooBar = Foo Number | Bar Boolean String
 
 routing :: Match FooBar
 routing =
-  Foo <$> (lit "foo" *> (var >>= num))
+  Foo <$> (lit "foo" *> num)
   <|>
-  Bar <$> (lit "bar" *> (var >>= bool)) <*> (param "baz")
+  Bar <$> (lit "bar" *> bool) <*> (param "baz")
 
 main = do
   fprint $ matchHash routing "foo/asdf"

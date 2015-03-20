@@ -1,9 +1,11 @@
 module Routing.Match.Class where
 
-import Control.MonadPlus
+import Control.Alternative
 
-class (MonadPlus f) <= MatchClass f where
+class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit
-  var :: f String
+  str :: f String
   param :: String -> f String
+  num :: f Number
+  bool :: f Boolean
   fail :: forall a. String -> f a

@@ -3,13 +3,14 @@ module Routing.Match where
 import Data.Either
 import Data.Tuple
 import Data.Maybe
+import Data.List
 import Control.Alt
 import Control.Plus
 import Control.Apply
-import Control.MonadPlus
 import Control.Alternative
 import Control.Monad.Error 
 import qualified Data.StrMap as M
+import Global (readFloat, isNaN)
 
 import Routing.Parser
 import Routing.Types
@@ -21,24 +22,46 @@ instance matchMatchClass :: MatchClass Match where
   lit input = Match $ \route ->
     case route of
       -- TODO: check if (Path input):rs works probably ps bug.
-      (Path i):rs |i == input ->
+      Cons (Path i) rs | i == input ->
         Right $ Tuple rs unit
-      (Path _):_ -> Left <<< strMsg $ "expected path part \"" <> input <> "\""
+      Cons (Path _) _ -> 
+        Left <<< strMsg $ "expected path part \"" <> input <> "\""
       _ -> Left <<< strMsg $ "expected path part - found query"
-  var = Match $ \route ->
+  num = Match $ \route ->
     case route of
-      (Path input):rs -> Right $ Tuple rs input 
+      Cons (Path input) rs -> 
+        let res = readFloat input in
+        if isNaN res then Left <<< strMsg $ "expected numeric var"
+        else Right $ Tuple rs res
+      _ -> Left <<< strMsg $ "expected numeric var"
+
+  bool = Match $ \route ->
+    case route of
+      Cons (Path input) rs | input == "true" ->
+        Right $ Tuple rs true
+      Cons (Path input) rs | input == "false" -> 
+        Right $ Tuple rs false
+      _ -> Left <<< strMsg $ "expected boolean var"
+
+  str = Match $ \route ->
+    case route of
+      Cons (Path input) rs -> 
+        Right $ Tuple rs input 
       _ -> Left <<< strMsg $ "expected simple var - found query"
+
+
+
 
   param key = Match $ \route ->
     case route of
-      (Query map):rs ->
+      Cons (Query map) rs ->
         case M.lookup key map of
           Nothing -> Left <<< strMsg $ "key " <> key <> " not found in query"
-          Just el -> Right $ Tuple ((Query <<< M.delete key $ map):rs) el
+          Just el -> Right $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
       _ -> Left <<< strMsg $ "expected query - found path"
   fail msg = Match \_ -> Left $ strMsg msg
 
+  
 
 instance matchFunctor :: Functor Match where
   (<$>) fn (Match r2e) = Match $ \r -> do
@@ -63,14 +86,8 @@ instance matchApply :: Apply Match where
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> Right $ Tuple r a
 
-instance matchBind :: Bind Match where
-  (>>=) (Match r2a) a2mb = Match $ \r -> do
-    Tuple rs a <- r2a r
-    case a2mb a of
-      Match res -> res rs
 
-instance matchMonad :: Monad Match
-instance matchMonadPlus :: MonadPlus Match
+
 
 
 runMatch :: forall a. Match a -> Route -> Either String a

@@ -5,6 +5,7 @@ module Routing.Parser (
 import Control.MonadPlus
 import Data.Maybe
 import Data.Tuple
+import Data.List
 import Data.Traversable (traverse) 
 import qualified Data.StrMap as M
 import qualified Data.String as S
@@ -17,7 +18,7 @@ tryQuery :: RoutePart -> RoutePart
 tryQuery source@(Path string) = fromMaybe source $ do
   guard $ S.take 1 string == "?"
   let parts = S.split "&" $ S.drop 1 string
-  Query <$> M.fromList <$> traverse part2tuple parts
+  Query <$> M.fromList  <$> traverse part2tuple parts
   where part2tuple :: String -> Maybe (Tuple String String)
         part2tuple input = do
           let keyVal = S.split "=" input
@@ -28,5 +29,8 @@ tryQuery q = q
 foreign import decodeURIComponent :: String -> String
 
 parse :: String -> Route
-parse hash = tryQuery <$> Path <$> decodeURIComponent <$> S.split "/" hash
+parse hash = tryQuery <$>
+             Path <$>
+             decodeURIComponent <$>
+             fromArray (S.split "/" hash)
 
