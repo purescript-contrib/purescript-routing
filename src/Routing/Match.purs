@@ -14,7 +14,7 @@ import Global (readFloat, isNaN)
 import Data.Semiring.Free
 import Data.Foldable
 import qualified Data.Array as A 
-import Data.Validation.Alt
+import Data.Validation.Semiring
 
 import Routing.Parser
 import Routing.Types
@@ -27,77 +27,71 @@ instance matchMatchClass :: MatchClass Match where
   lit input = Match $ \route ->
     case route of
       Cons (Path i) rs | i == input ->
-        Valid $ Tuple rs unit
+        pure $ Tuple rs unit
       Cons (Path _) rs ->
-        Invalid $ free $  UnexpectedPath input
+        invalid $ free $  UnexpectedPath input
       _ ->
-        Invalid $ free ExpectedPathPart
+        invalid $ free ExpectedPathPart
   num = Match $ \route ->
     case route of
       Cons (Path input) rs -> 
         let res = readFloat input in
         if isNaN res then
-          Invalid $ free ExpectedNumber
+          invalid $ free ExpectedNumber
         else
-          Valid $ Tuple rs res 
+          pure $ Tuple rs res 
       _ ->
-        Invalid $ free ExpectedNumber
+        invalid $ free ExpectedNumber
 
   bool = Match $ \route ->
     case route of
       Cons (Path input) rs | input == "true" ->
-        Valid $ Tuple rs true 
+        pure $ Tuple rs true 
       Cons (Path input) rs | input == "false" ->
-        Valid $ Tuple rs false 
+        pure $ Tuple rs false 
       _ ->
-        Invalid $ free ExpectedBoolean
+        invalid $ free ExpectedBoolean
 
   str = Match $ \route ->
     case route of
       Cons (Path input) rs ->
-        Valid $ Tuple rs input
+        pure $ Tuple rs input
       _ ->
-        Invalid $ free ExpectedString
+        invalid $ free ExpectedString
 
   param key = Match $ \route ->
     case route of
       Cons (Query map) rs ->
         case M.lookup key map of
           Nothing ->
-            Invalid $ free $ KeyNotFound key
+            invalid $ free $ KeyNotFound key
           Just el ->
-            Valid $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
+            pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
       _ ->
-        Invalid $ free ExpectedQuery
+        invalid $ free ExpectedQuery
   fail msg = Match \_ ->
-    Invalid $ free $ Fail msg
+    invalid $ free $ Fail msg
 
 instance matchFunctor :: Functor Match where
   (<$>) fn (Match r2e) = Match $ \r ->
-    case r2e r of
-      Invalid a -> Invalid a
-      Valid (Tuple rs a) -> Valid (Tuple rs (fn a))
-
+    runV invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
 
 instance matchAlt :: Alt Match where
   (<|>) (Match r2e1) (Match r2e2) = Match $ \r -> do
     (r2e1 r) <|> (r2e2 r)
+    
 instance matchPlus :: Plus Match where
-  empty = Match $ const $ Invalid one
+  empty = Match $ const $ invalid one
 
 instance matchAlternative :: Alternative Match
 
 instance matchApply :: Apply Match where
-  (<*>) (Match r2a2b) (Match r2a) = Match $ \r -> do
-    case r2a2b r of
-      Invalid err ->
-        case r2a r of
-          Invalid err' -> Invalid (err * err')
-          _ -> Invalid err
-      Valid (Tuple rs a2b)  ->
-        case r2a rs of -- `rs` here not r, so we can't use `<*>` from `V`
-          Invalid err -> Invalid err
-          Valid (Tuple rss a) -> Valid $ Tuple rss (a2b a)
+  (<*>) (Match r2a2b) (Match r2a) = 
+    Match $ (\r -> runV (processFnErr r) processFnRes (r2a2b r))
+    where processFnErr r err = 
+            invalid $ err * runV id (const one) (r2a r)
+          processFnRes (Tuple rs a2b) =
+            runV invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
@@ -106,9 +100,11 @@ instance matchApplicative :: Applicative Match where
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String 
 runMatch :: forall a. Match a -> Route -> Either String a
 runMatch (Match fn) route =
-  case fn route of
-    Valid res -> Right $ snd res
-    Invalid errs -> Left $ foldl (\b a -> a <> "\n" <> b) "" do
-      es <- A.reverse <$> runFree errs
-      pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
+  runV foldErrors (Right <<< snd) $ fn route
+  where foldErrors errs = Left $ 
+          foldl (\b a -> a <> "\n" <> b) "" do
+            es <- A.reverse <$> runFree errs
+            pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
+
+
     
