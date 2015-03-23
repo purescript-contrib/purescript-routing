@@ -24,8 +24,8 @@
     "purescript-transformers": "~0.5.1",
     "purescript-arrays": "~0.3.3",
     "purescript-monoid": "~0.2.0",
-    "purescript-validation": "https://github.com/cryogenian/purescript-validation.git#master",
-    "purescript-semirings": "https://github.com/cryogenian/purescript-semirings.git"
+    "purescript-validation": "~0.1.1",
+    "purescript-semirings": "https://github.com/purescript/purescript-semirings.git#~0.1.1"
   },
   "devDependencies": {
     "purescript-timers": "~0.0.8",
