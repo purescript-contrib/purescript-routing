@@ -20,7 +20,7 @@ routing =
   Bar <$> (lit "bar" *> bool) <*> (param "baz")
 
 main = do
-  fprint $ matchHash routing "foo/asdf"
+  fprint $ matchHash routing "food/asdf"
   matches routing $ \old new -> void $ do
     fprint old
     fprint new
