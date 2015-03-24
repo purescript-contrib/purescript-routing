@@ -25,7 +25,8 @@
     "purescript-arrays": "~0.3.3",
     "purescript-monoid": "~0.2.0",
     "purescript-validation": "~0.1.1",
-    "purescript-semirings": "~0.1.1"
+    "purescript-semirings": "~0.1.1",
+    "purescript-lists": "~0.6.0"
   },
   "devDependencies": {
     "purescript-timers": "~0.0.8",
