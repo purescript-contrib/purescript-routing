@@ -26,11 +26,11 @@
     "purescript-monoid": "~0.2.0",
     "purescript-validation": "~0.1.1",
     "purescript-semirings": "~0.1.1",
-    "purescript-lists": "~0.6.0"
+    "purescript-lists": "~0.6.0",
+    "purescript-globals": "~0.1.6"
   },
   "devDependencies": {
     "purescript-timers": "~0.0.8",
-    "purescript-debug-foreign": "~0.0.4",
-    "purescript-globals": "~0.1.5"
+    "purescript-debug-foreign": "~0.0.4"
   }
 }
