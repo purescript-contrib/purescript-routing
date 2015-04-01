@@ -108,3 +108,10 @@ runMatch (Match fn) route =
 
 
     
+eitherMatch :: forall a b. Match (Either a b) -> Match b
+eitherMatch (Match r2eab) = Match $ \r ->
+  runV invalid runEither $ (r2eab r)
+  where runEither (Tuple rs eit) =
+          case eit of
+            Left _ -> invalid $ free $ Fail "left in either"
+            Right res -> pure $ Tuple rs res

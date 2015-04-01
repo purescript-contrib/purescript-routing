@@ -37,7 +37,7 @@ matchHash :: forall a. Match a -> String -> Either String a
 
 ``` purescript
 newtype Match a
-  = Match (Route -> Either String (Tuple Route a))
+  = Match (Route -> V (Free MatchError) (Tuple Route a))
 ```
 
 
@@ -90,31 +90,16 @@ instance matchApplicative :: Applicative Match
 ```
 
 
-#### `matchBind`
-
-``` purescript
-instance matchBind :: Bind Match
-```
-
-
-#### `matchMonad`
-
-``` purescript
-instance matchMonad :: Monad Match
-```
-
-
-#### `matchMonadPlus`
-
-``` purescript
-instance matchMonadPlus :: MonadPlus Match
-```
-
-
 #### `runMatch`
 
 ``` purescript
 runMatch :: forall a. Match a -> Route -> Either String a
+```
+
+#### `eitherMatch`
+
+``` purescript
+eitherMatch :: forall a b. Match (Either a b) -> Match b
 ```
 
 
@@ -170,7 +155,7 @@ data RoutePart
 #### `Route`
 
 ``` purescript
-type Route = [RoutePart]
+type Route = List RoutePart
 ```
 
 
@@ -180,28 +165,38 @@ type Route = [RoutePart]
 #### `MatchClass`
 
 ``` purescript
-class (MonadPlus f) <= MatchClass f where
+class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit
-  var :: f String
+  str :: f String
   param :: String -> f String
+  num :: f Number
+  bool :: f Boolean
   fail :: forall a. String -> f a
 ```
 
 
 
-## Module Routing.Match.Combinators
+## Module Routing.Match.Error
 
-#### `num`
+#### `MatchError`
 
 ``` purescript
-num :: forall f. (MatchClass f) => String -> f Number
+data MatchError
+  = UnexpectedPath String
+  | ExpectedBoolean 
+  | ExpectedNumber 
+  | ExpectedString 
+  | ExpectedQuery 
+  | ExpectedPathPart 
+  | KeyNotFound String
+  | Fail String
 ```
 
 
-#### `bool`
+#### `showMatchError`
 
 ``` purescript
-bool :: forall f. (MatchClass f) => String -> f Boolean
+showMatchError :: MatchError -> String
 ```
 
 
