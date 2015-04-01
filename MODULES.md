@@ -31,13 +31,37 @@ matchHash :: forall a. Match a -> String -> Either String a
 
 
 
+## Module Routing.Hash
+
+#### `setHash`
+
+``` purescript
+setHash :: forall e. String -> Eff (dom :: DOM | e) Unit
+```
+
+
+#### `getHash`
+
+``` purescript
+getHash :: forall e. Eff (dom :: DOM | e) String
+```
+
+
+#### `modifyHash`
+
+``` purescript
+modifyHash :: forall e. (String -> String) -> Eff (dom :: DOM | e) Unit
+```
+
+
+
 ## Module Routing.Match
 
 #### `Match`
 
 ``` purescript
 newtype Match a
-  = Match (Route -> Either String (Tuple Route a))
+  = Match (Route -> V (Free MatchError) (Tuple Route a))
 ```
 
 
@@ -90,33 +114,34 @@ instance matchApplicative :: Applicative Match
 ```
 
 
-#### `matchBind`
-
-``` purescript
-instance matchBind :: Bind Match
-```
-
-
-#### `matchMonad`
-
-``` purescript
-instance matchMonad :: Monad Match
-```
-
-
-#### `matchMonadPlus`
-
-``` purescript
-instance matchMonadPlus :: MonadPlus Match
-```
-
-
 #### `runMatch`
 
 ``` purescript
 runMatch :: forall a. Match a -> Route -> Either String a
 ```
 
+#### `eitherMatch`
+
+``` purescript
+eitherMatch :: forall a b. Match (Either a b) -> Match b
+```
+
+if we match something that can fail then we have to 
+match `Either a b`. This function converts matching on such
+sum to matching on right subpart. Matching on left branch fails.
+i.e.
+```purescript
+data Sort = Asc | Desc
+sortOfString :: String -> Either String Sort
+sortOfString "asc" = Right Asc
+sortOfString "desc" = Right Desc
+sortOfString _ = Left "incorrect sort"
+           
+newtype Routing = Routing Sort
+routes :: Match Routing
+routes = (pure Routing) <*> (eitherMatch (sortOfString <$> var))
+           
+```
 
 
 ## Module Routing.Parser
@@ -127,33 +152,6 @@ runMatch :: forall a. Match a -> Route -> Either String a
 parse :: String -> Route
 ```
 
-
-
-## Module Routing.Setter
-
-#### `setHash`
-
-``` purescript
-setHash :: forall e. String -> Eff e Unit
-```
-
-
-#### `RouteState`
-
-``` purescript
-class RouteState a where
-  toHash :: a -> String
-```
-
-Class of types that can be converted to hashes 
-
-#### `setRouteState`
-
-``` purescript
-setRouteState :: forall r e. (RouteState r) => r -> Eff e Unit
-```
-
-wrapper over `setHash` that uses `RouteState`
 
 
 ## Module Routing.Types
@@ -170,7 +168,7 @@ data RoutePart
 #### `Route`
 
 ``` purescript
-type Route = [RoutePart]
+type Route = List RoutePart
 ```
 
 
@@ -180,28 +178,38 @@ type Route = [RoutePart]
 #### `MatchClass`
 
 ``` purescript
-class (MonadPlus f) <= MatchClass f where
+class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit
-  var :: f String
+  str :: f String
   param :: String -> f String
+  num :: f Number
+  bool :: f Boolean
   fail :: forall a. String -> f a
 ```
 
 
 
-## Module Routing.Match.Combinators
+## Module Routing.Match.Error
 
-#### `num`
+#### `MatchError`
 
 ``` purescript
-num :: forall f. (MatchClass f) => String -> f Number
+data MatchError
+  = UnexpectedPath String
+  | ExpectedBoolean 
+  | ExpectedNumber 
+  | ExpectedString 
+  | ExpectedQuery 
+  | ExpectedPathPart 
+  | KeyNotFound String
+  | Fail String
 ```
 
 
-#### `bool`
+#### `showMatchError`
 
 ``` purescript
-bool :: forall f. (MatchClass f) => String -> f Boolean
+showMatchError :: MatchError -> String
 ```
 
 
