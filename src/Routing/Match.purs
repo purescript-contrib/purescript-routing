@@ -107,11 +107,26 @@ runMatch (Match fn) route =
             pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
 
 
-    
+-- | if we match something that can fail then we have to 
+-- | match `Either a b`. This function converts matching on such
+-- | sum to matching on right subpart. Matching on left branch fails.
+-- | i.e.
+-- | ```purescript
+-- | data Sort = Asc | Desc
+-- | sortOfString :: String -> Either String Sort
+-- | sortOfString "asc" = Right Asc
+-- | sortOfString "desc" = Right Desc
+-- | sortOfString _ = Left "incorrect sort"
+-- |            
+-- | newtype Routing = Routing Sort
+-- | routes :: Match Routing
+-- | routes = (pure Routing) <*> (eitherMatch (sortOfString <$> var))
+-- |            
+-- | ```
 eitherMatch :: forall a b. Match (Either a b) -> Match b
 eitherMatch (Match r2eab) = Match $ \r ->
   runV invalid runEither $ (r2eab r)
   where runEither (Tuple rs eit) =
           case eit of
-            Left _ -> invalid $ free $ Fail "left in either"
+            Left _ -> invalid $ free $ Fail "Nested check failed"
             Right res -> pure $ Tuple rs res
