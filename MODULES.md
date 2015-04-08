@@ -23,10 +23,24 @@ matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 ```
 
 
+#### `matches'`
+
+``` purescript
+matches' :: forall e a. (String -> String) -> Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
+```
+
+
 #### `matchHash`
 
 ``` purescript
 matchHash :: forall a. Match a -> String -> Either String a
+```
+
+
+#### `matchHash'`
+
+``` purescript
+matchHash' :: forall a. (String -> String) -> Match a -> String -> Either String a
 ```
 
 
@@ -114,6 +128,15 @@ instance matchApplicative :: Applicative Match
 ```
 
 
+#### `list`
+
+``` purescript
+list :: forall a. Match a -> Match (List a)
+```
+
+Matches list of matchers. Useful when argument can easy fail (not `str`)
+returns `Match Nil` if no matches
+
 #### `runMatch`
 
 ``` purescript
@@ -149,9 +172,11 @@ routes = (pure Routing) <*> (eitherMatch (sortOfString <$> var))
 #### `parse`
 
 ``` purescript
-parse :: String -> Route
+parse :: (String -> String) -> String -> Route
 ```
 
+Parse hash string to `Route` with `decoder` function
+applied to every hash part (usually `decodeURIComponent`)
 
 
 ## Module Routing.Types
