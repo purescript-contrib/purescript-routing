@@ -96,6 +96,22 @@ instance matchApply :: Apply Match where
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
 
+
+-- | Matches list of matchers. Useful when argument can easy fail (not `str`)
+-- | returns `Match Nil` if no matches
+list :: forall a. Match a -> Match (List a)
+list (Match r2a) =
+  Match $ go Nil
+  where go :: List a -> Route -> V (Free MatchError) (Tuple Route (List a))
+        go accum r =
+          runV
+          (const $ pure (Tuple r (reverse accum)))
+          (\(Tuple rs a) -> go (Cons a accum) rs)
+          (r2a r)
+          
+
+
+
 -- It groups `Free MatchError` -> [[MatchError]] -map with showMatchError ->
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String 
 runMatch :: forall a. Match a -> Route -> Either String a

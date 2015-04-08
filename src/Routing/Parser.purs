@@ -26,11 +26,12 @@ tryQuery source@(Path string) = fromMaybe source $ do
           Tuple <$> (A.head keyVal) <*> (keyVal A.!! 1)
 tryQuery q = q
 
-foreign import decodeURIComponent :: String -> String
 
-parse :: String -> Route
-parse hash = tryQuery <$>
+-- | Parse hash string to `Route` with `decoder` function
+-- | applied to every hash part (usually `decodeURIComponent`)
+parse :: (String -> String) -> String -> Route
+parse decoder hash = tryQuery <$>
              Path <$>
-             decodeURIComponent <$>
+             decoder <$> 
              fromArray (S.split "/" hash)
 
