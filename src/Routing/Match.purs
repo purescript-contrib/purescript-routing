@@ -21,8 +21,6 @@ import Routing.Types
 import Routing.Match.Class
 import Routing.Match.Error
 
-import Debug.Foreign
-
 newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a)) 
 
 instance matchMatchClass :: MatchClass Match where

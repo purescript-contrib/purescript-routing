@@ -38,6 +38,9 @@ hashes cb =
   where dropHash h = R.replace (R.regex "^[^#]*#" R.noFlags) "" h
 
 
+-- | Stream of hash changed, callback called when new hash can be matched
+-- | First argument of callback is `Just a` when old hash can be matched
+-- | and `Nothing` when it can't.
 matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 matches = matches' decodeURIComponent
 
