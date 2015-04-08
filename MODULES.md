@@ -22,6 +22,9 @@ hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 ```
 
+Stream of hash changed, callback called when new hash can be matched
+First argument of callback is `Just a` when old hash can be matched
+and `Nothing` when it can't.
 
 #### `matches'`
 
