@@ -33,6 +33,20 @@ matches' :: forall e a. (String -> String) -> Match a -> (Maybe a -> a -> Eff e 
 ```
 
 
+#### `matchesAff'`
+
+``` purescript
+matchesAff' :: forall e a. (String -> String) -> Match a -> Aff e (Tuple (Maybe a) a)
+```
+
+
+#### `matchesAff`
+
+``` purescript
+matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
+```
+
+
 #### `matchHash`
 
 ``` purescript
@@ -197,6 +211,23 @@ data RoutePart
 
 ``` purescript
 type Route = List RoutePart
+```
+
+
+
+## Module Routing.Hash.Aff
+
+#### `modifyHash`
+
+``` purescript
+modifyHash :: forall e. (String -> String) -> Aff (dom :: DOM | e) Unit
+```
+
+
+#### `setHash`
+
+``` purescript
+setHash :: forall e. String -> Aff (dom :: DOM | e) Unit
 ```
 
 

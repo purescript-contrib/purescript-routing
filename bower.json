@@ -28,7 +28,8 @@
     "purescript-semirings": "~0.1.1",
     "purescript-lists": "~0.6.0",
     "purescript-globals": "~0.1.6",
-    "purescript-dom": "~0.1.2"
+    "purescript-dom": "~0.1.2",
+    "purescript-aff": "~0.10.0"
   },
   "devDependencies": {
     "purescript-timers": "~0.0.8",

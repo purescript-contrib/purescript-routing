@@ -4,12 +4,16 @@ module Routing (
   matches,
   matches',
   matchHash,
-  matchHash'
+  matchHash',
+  matchesAff,
+  matchesAff'
   ) where
 
 import Control.Monad.Eff
+import Control.Monad.Aff
 import Data.Maybe
 import Data.Either
+import Data.Tuple
 import qualified Data.String.Regex as R
 
 import Routing.Parser
@@ -49,8 +53,18 @@ matches' :: forall e a. (String -> String) ->
 matches' decoder routing cb = hashes $ \old new ->
   let mr = matchHash' decoder routing
       fst = either (const Nothing) Just $ mr old
-  in either (const $ pure unit) (cb fst) $ mr new 
+  in either (const $ pure unit) (cb fst) $ mr new
 
+matchesAff' :: forall e a. (String -> String) ->
+               Match a -> Aff e (Tuple (Maybe a) a)
+matchesAff' decoder routing =
+  makeAff \_ k -> do 
+    matches' decoder routing \old new ->
+      k $ Tuple old new
+
+matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
+matchesAff = matchesAff' decodeURIComponent
+  
 
 matchHash :: forall a. Match a -> String -> Either String a
 matchHash = matchHash' decodeURIComponent
