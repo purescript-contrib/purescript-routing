@@ -25,10 +25,13 @@ foreign import decodeURIComponent :: String -> String
 foreign import hashChanged """
 function hashChanged(handler) {
   return function() {
-    var currentHash = document.location.hash;
-    handler("")(currentHash)();
+    var getHash = function() {return document.location.href.split('#')[1] || '';};
+    window['__oldHash'] = "";
+    handler("")(getHash())();
     window.addEventListener("hashchange", function(ev) {
-      handler(ev.oldURL)(ev.newURL)();
+      var newHash = getHash();
+      handler(window['__oldHash'])(newHash)();
+      window['__oldHash'] = newHash;
     });
   };
 }
