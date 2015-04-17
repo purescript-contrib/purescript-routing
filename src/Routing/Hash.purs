@@ -14,7 +14,7 @@ function setHash(hash) {
 
 foreign import getHash """
 function getHash() {
-  return document.location.href.split('#')[1] || "";
+  return document.location.href.split('#').splice(1).join('#');
 }
 """ :: forall e. Eff (dom :: DOM |e) String
 
