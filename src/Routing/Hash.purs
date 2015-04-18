@@ -6,14 +6,15 @@ import DOM
 foreign import setHash """
 function setHash(hash) {
   return function() {
-    document.location.hash = hash;
+    var uri = document.location.href.split('#')[0];
+    document.location.href = uri + '#' + hash;
   };
 }
 """ :: forall e. String -> Eff (dom :: DOM |e) Unit
 
 foreign import getHash """
 function getHash() {
-  return document.location.hash.replace(/^[^#]*#/g, "");
+  return document.location.href.split('#').splice(1).join('#');
 }
 """ :: forall e. Eff (dom :: DOM |e) String
 
