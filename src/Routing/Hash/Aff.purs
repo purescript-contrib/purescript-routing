@@ -1,8 +1,9 @@
 module Routing.Hash.Aff where
 
-import DOM 
-import Control.Monad.Aff
-import Control.Monad.Eff.Class
+import Prelude
+import DOM (DOM())
+import Control.Monad.Aff (Aff())
+import Control.Monad.Eff.Class (liftEff)
 import qualified Routing.Hash as R
 
 modifyHash :: forall e. (String -> String) -> Aff (dom :: DOM|e) Unit 

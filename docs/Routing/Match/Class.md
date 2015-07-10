@@ -1,8 +1,8 @@
-module Routing.Match.Class where
+## Module Routing.Match.Class
 
-import Prelude
-import Control.Alternative
+#### `MatchClass`
 
+``` purescript
 class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit
   str :: f String
@@ -10,3 +10,6 @@ class (Alternative f) <= MatchClass f where
   num :: f Number
   bool :: f Boolean
   fail :: forall a. String -> f a
+```
+
+

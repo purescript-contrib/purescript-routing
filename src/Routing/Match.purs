@@ -1,5 +1,6 @@
 module Routing.Match where
 
+import Prelude
 import Data.Either
 import Data.Tuple
 import Data.Maybe
@@ -73,11 +74,11 @@ instance matchMatchClass :: MatchClass Match where
     invalid $ free $ Fail msg
 
 instance matchFunctor :: Functor Match where
-  (<$>) fn (Match r2e) = Match $ \r ->
+  map fn (Match r2e) = Match $ \r ->
     runV invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
 
 instance matchAlt :: Alt Match where
-  (<|>) (Match r2e1) (Match r2e2) = Match $ \r -> do
+  alt (Match r2e1) (Match r2e2) = Match $ \r -> do
     (r2e1 r) <|> (r2e2 r)
     
 instance matchPlus :: Plus Match where
@@ -86,7 +87,7 @@ instance matchPlus :: Plus Match where
 instance matchAlternative :: Alternative Match
 
 instance matchApply :: Apply Match where
-  (<*>) (Match r2a2b) (Match r2a) = 
+  apply (Match r2a2b) (Match r2a) = 
     Match $ (\r -> runV (processFnErr r) processFnRes (r2a2b r))
     where processFnErr r err = 
             invalid $ err * runV id (const one) (r2a r)
@@ -119,7 +120,7 @@ runMatch (Match fn) route =
   runV foldErrors (Right <<< snd) $ fn route
   where foldErrors errs = Left $ 
           foldl (\b a -> a <> "\n" <> b) "" do
-            es <- A.reverse <$> runFree errs
+            es <- reverse <$> runFree errs
             pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
 
 
