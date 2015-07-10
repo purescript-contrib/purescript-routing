@@ -9,6 +9,7 @@ module Routing (
   matchesAff'
   ) where
 
+import Prelude
 import Control.Monad.Eff
 import Control.Monad.Aff
 import Data.Maybe
@@ -22,22 +23,7 @@ import Routing.Match
 
 foreign import decodeURIComponent :: String -> String 
 
-foreign import hashChanged """
-function hashChanged(handler) {
-  return function() {
-    var getHash = function() {
-      return document.location.href.split('#').splice(1).join('#');
-    };
-    var oldHash = "";    
-    handler("")(getHash())();
-    window.addEventListener("hashchange", function(ev) {
-      var newHash = getHash();
-      handler(oldHash)(newHash)();
-      oldHash = newHash;
-    });
-  };
-}
-""" :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit 
+foreign import hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit 
 
 
 hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit

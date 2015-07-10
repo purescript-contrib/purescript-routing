@@ -1,5 +1,7 @@
 module Routing.Match.Error where
 
+import Prelude ((<>))
+
 data MatchError
   -- expected other path part
   = UnexpectedPath String
