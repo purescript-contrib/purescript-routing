@@ -5,7 +5,7 @@
 ``` purescript
 data RoutePart
   = Path String
-  | Query (StrMap String)
+  | Query (Map String String)
 ```
 
 #### `Route`

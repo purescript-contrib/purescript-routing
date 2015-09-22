@@ -1,7 +1,7 @@
 module Routing.Match.Class where
 
 import Prelude
-import Control.Alternative
+import Control.Alternative (Alternative)
 
 class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit

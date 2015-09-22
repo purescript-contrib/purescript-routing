@@ -18,18 +18,18 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-control": "^0.3.0",
-    "purescript-transformers": "^0.6.1",
-    "purescript-maps": "^0.4.0",
-    "purescript-aff": "^0.11.0",
-    "purescript-strings": "^0.5.2",
-    "purescript-arrays": "^0.4.0",
-    "purescript-lists": "^0.7.0",
-    "purescript-monoid": "^0.3.0",
-    "purescript-validation": "^0.2.0",
+    "purescript-aff": "^0.13.0",
+    "purescript-dom": "^0.2.6",
+    "purescript-eff": "^0.1.1",
+    "purescript-either": "^0.2.2",
+    "purescript-globals": "^0.2.1",
+    "purescript-lists": "^0.7.4",
+    "purescript-maps": "^0.5.0",
+    "purescript-maybe": "^0.3.4",
+    "purescript-prelude": "^0.1.2",
     "purescript-semirings": "^0.2.0",
-    "purescript-dom": "^0.1.2",
-    "purescript-globals": "^0.2.0"
+    "purescript-tuples": "^0.4.0",
+    "purescript-validation": "^0.2.0"
   },
   "devDependencies": {
     "purescript-console": "^0.1.0"
