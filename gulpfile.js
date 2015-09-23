@@ -1,15 +1,7 @@
 'use strict'
 
 var gulp = require('gulp'),
-    purescript = require('gulp-purescript'),
-    runSequence = require('run-sequence');
-
-function sequence() {
-    var args = [].slice.apply(arguments);
-    return function() {
-        runSequence.apply(null, args);
-    };
-}
+    purescript = require('gulp-purescript');
 
 var sources = [
     'src/**/*.purs',
@@ -66,3 +58,5 @@ gulp.task('test-bundle', ['test-make'], function() {
         output: 'public/test.js'
     });
 });
+
+gulp.task("default", ["test-bundle", "docs"]);

@@ -1,7 +1,7 @@
 module Routing.Types where
 
-import qualified Data.StrMap as M
-import Data.List
+import Data.List (List())
+import Data.Map (Map())
 
-data RoutePart = Path String | Query (M.StrMap String)
+data RoutePart = Path String | Query (Map String String)
 type Route = List RoutePart

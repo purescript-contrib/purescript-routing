@@ -18,6 +18,12 @@ instance matchApply :: Apply Match
 instance matchApplicative :: Applicative Match
 ```
 
+#### `unMatch`
+
+``` purescript
+unMatch :: forall a. Match a -> Route -> V (Free MatchError) (Tuple Route a)
+```
+
 #### `list`
 
 ``` purescript
@@ -39,7 +45,7 @@ runMatch :: forall a. Match a -> Route -> Either String a
 eitherMatch :: forall a b. Match (Either a b) -> Match b
 ```
 
-if we match something that can fail then we have to 
+if we match something that can fail then we have to
 match `Either a b`. This function converts matching on such
 sum to matching on right subpart. Matching on left branch fails.
 i.e.
@@ -49,11 +55,11 @@ sortOfString :: String -> Either String Sort
 sortOfString "asc" = Right Asc
 sortOfString "desc" = Right Desc
 sortOfString _ = Left "incorrect sort"
-           
+
 newtype Routing = Routing Sort
 routes :: Match Routing
 routes = (pure Routing) <*> (eitherMatch (sortOfString <$> var))
-           
+
 ```
 
 

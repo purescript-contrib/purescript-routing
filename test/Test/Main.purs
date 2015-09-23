@@ -12,7 +12,7 @@ import Routing
 import Routing.Match
 import Routing.Match.Class
 
-data FooBar = Foo Number | Bar Boolean String | Baz (List Number) 
+data FooBar = Foo Number | Bar Boolean String | Baz (List Number)
 
 instance showFooBar :: Show FooBar where
   show (Foo num) = "(Foo " <> show num <> " )"
@@ -33,5 +33,3 @@ main = do
   matches routing $ \old new -> void do
     print old
     print new
-
-

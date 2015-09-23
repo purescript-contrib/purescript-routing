@@ -10,20 +10,20 @@ module Routing (
   ) where
 
 import Prelude
-import Control.Monad.Eff
-import Control.Monad.Aff
-import Data.Maybe
-import Data.Either
-import Data.Tuple
+import Control.Monad.Eff (Eff())
+import Control.Monad.Aff (Aff(), makeAff)
+import Data.Maybe (Maybe(..))
+import Data.Either (Either(), either)
+import Data.Tuple (Tuple(..))
 import qualified Data.String.Regex as R
 
 import Routing.Parser
 import Routing.Match
 
 
-foreign import decodeURIComponent :: String -> String 
+foreign import decodeURIComponent :: String -> String
 
-foreign import hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit 
+foreign import hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 
 
 hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
@@ -49,16 +49,16 @@ matches' decoder routing cb = hashes $ \old new ->
 matchesAff' :: forall e a. (String -> String) ->
                Match a -> Aff e (Tuple (Maybe a) a)
 matchesAff' decoder routing =
-  makeAff \_ k -> do 
+  makeAff \_ k -> do
     matches' decoder routing \old new ->
       k $ Tuple old new
 
 matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
 matchesAff = matchesAff' decodeURIComponent
-  
+
 
 matchHash :: forall a. Match a -> String -> Either String a
 matchHash = matchHash' decodeURIComponent
 
 matchHash' :: forall a. (String -> String) -> Match a -> String -> Either String a
-matchHash' decoder matcher hash = runMatch matcher $ parse decoder hash 
+matchHash' decoder matcher hash = runMatch matcher $ parse decoder hash
