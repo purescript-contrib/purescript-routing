@@ -15,4 +15,10 @@ exports.hashChanged = function(handler) {
     };
 };
 
-exports.decodeURIComponent = window.decodeURIComponent;
+exports.decodeURIComponent = function(str) {
+    if (typeof window !== "undefined") {
+        return window.decodeURIComponent(str);
+    } else {
+        return global.decodeURIComponent(str);
+    }
+};
