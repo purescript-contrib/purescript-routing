@@ -9,13 +9,13 @@ newtype Match a
 
 ##### Instances
 ``` purescript
-instance matchMatchClass :: MatchClass Match
-instance matchFunctor :: Functor Match
-instance matchAlt :: Alt Match
-instance matchPlus :: Plus Match
-instance matchAlternative :: Alternative Match
-instance matchApply :: Apply Match
-instance matchApplicative :: Applicative Match
+MatchClass Match
+Functor Match
+Alt Match
+Plus Match
+Alternative Match
+Apply Match
+Applicative Match
 ```
 
 #### `unMatch`

@@ -18,7 +18,7 @@
   "homepage": "https://github.com/slamdata/purescript-routing",
   "dependencies": {
     "gulp": "^3.9.0",
-    "gulp-purescript": "^0.7.0",
-    "purescript": "^0.7.4"
+    "gulp-purescript": "^0.8.0",
+    "purescript": "^0.7.6"
   }
 }
