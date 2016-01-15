@@ -7,6 +7,7 @@ class (Alternative f) <= MatchClass f where
   lit :: String -> f Unit
   str :: f String
   param :: String -> f String
+  params :: f (Map String String)
   num :: f Number
   bool :: f Boolean
   fail :: forall a. String -> f a

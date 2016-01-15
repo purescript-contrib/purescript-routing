@@ -8,7 +8,6 @@ import Data.List (List(..), reverse)
 import Control.Alt (Alt, (<|>))
 import Control.Plus (Plus)
 import Control.Alternative (Alternative)
-import Control.Monad.Except
 import Global (readFloat, isNaN)
 import Data.Semiring.Free (Free(), free, runFree)
 import Data.Foldable
@@ -16,9 +15,7 @@ import Data.Validation.Semiring
 
 
 import qualified Data.Map as M
-import qualified Data.String as S
 
-import Routing.Parser
 import Routing.Types
 import Routing.Match.Class
 import Routing.Match.Error
@@ -28,7 +25,7 @@ unMatch :: forall a. Match a -> (Route -> V (Free MatchError) (Tuple Route a))
 unMatch (Match a) = a
 
 instance matchMatchClass :: MatchClass Match where
-  lit input = Match $ \route ->
+  lit input = Match \route ->
     case route of
       Cons (Path i) rs | i == input ->
         pure $ Tuple rs unit
@@ -36,7 +33,8 @@ instance matchMatchClass :: MatchClass Match where
         invalid $ free $  UnexpectedPath input
       _ ->
         invalid $ free ExpectedPathPart
-  num = Match $ \route ->
+
+  num = Match \route ->
     case route of
       Cons (Path input) rs ->
         let res = readFloat input in
@@ -47,7 +45,7 @@ instance matchMatchClass :: MatchClass Match where
       _ ->
         invalid $ free ExpectedNumber
 
-  bool = Match $ \route ->
+  bool = Match \route ->
     case route of
       Cons (Path input) rs | input == "true" ->
         pure $ Tuple rs true
@@ -56,14 +54,14 @@ instance matchMatchClass :: MatchClass Match where
       _ ->
         invalid $ free ExpectedBoolean
 
-  str = Match $ \route ->
+  str = Match \route ->
     case route of
       Cons (Path input) rs ->
         pure $ Tuple rs input
       _ ->
         invalid $ free ExpectedString
 
-  param key = Match $ \route ->
+  param key = Match \route ->
     case route of
       Cons (Query map) rs ->
         case M.lookup key map of
@@ -73,6 +71,14 @@ instance matchMatchClass :: MatchClass Match where
             pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
       _ ->
         invalid $ free ExpectedQuery
+
+  params = Match \route ->
+    case route of
+      Cons (Query map) rs ->
+        pure $ Tuple rs map
+      _ ->
+        invalid $ free ExpectedQuery
+
   fail msg = Match \_ ->
     invalid $ free $ Fail msg
 
