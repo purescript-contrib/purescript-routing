@@ -1,24 +1,24 @@
 module Routing.Match where
 
-import Prelude
+import Prelude (class Applicative, class Apply, class Functor, ($), pure, (<<<), (<$>), (<>), bind, const, one, id, (*), (==), unit)
 import Data.Either (Either(..))
 import Data.Tuple (Tuple(..), snd)
 import Data.Maybe (Maybe(..))
 import Data.List (List(..), reverse)
-import Control.Alt (Alt, (<|>))
-import Control.Plus (Plus)
-import Control.Alternative (Alternative)
+import Control.Alt (class Alt, (<|>))
+import Control.Plus (class Plus)
+import Control.Alternative (class Alternative)
 import Global (readFloat, isNaN)
 import Data.Semiring.Free (Free(), free, runFree)
-import Data.Foldable
-import Data.Validation.Semiring
+import Data.Foldable (foldl)
+import Data.Validation.Semiring (V, invalid, runV)
 
 
-import qualified Data.Map as M
+import Data.Map as M
 
-import Routing.Types
-import Routing.Match.Class
-import Routing.Match.Error
+import Routing.Types (Route, RoutePart(Query, Path))
+import Routing.Match.Class (class MatchClass)
+import Routing.Match.Error (MatchError(Fail, ExpectedQuery, KeyNotFound, ExpectedString, ExpectedBoolean, ExpectedNumber, ExpectedPathPart, UnexpectedPath), showMatchError)
 
 newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a))
 unMatch :: forall a. Match a -> (Route -> V (Free MatchError) (Tuple Route a))

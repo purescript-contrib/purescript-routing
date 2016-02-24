@@ -9,16 +9,16 @@ module Routing (
   matchesAff'
   ) where
 
-import Prelude
+import Prelude (Unit, ($), unit, pure, const)
 import Control.Monad.Eff (Eff())
 import Control.Monad.Aff (Aff(), makeAff)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(), either)
 import Data.Tuple (Tuple(..))
-import qualified Data.String.Regex as R
+import Data.String.Regex as R
 
-import Routing.Parser
-import Routing.Match
+import Routing.Parser (parse)
+import Routing.Match (Match, runMatch)
 
 
 foreign import decodeURIComponent :: String -> String

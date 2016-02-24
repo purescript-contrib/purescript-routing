@@ -1,7 +1,7 @@
 module Routing.Match.Class where
 
-import Prelude
-import Control.Alternative (Alternative)
+import Prelude (Unit)
+import Control.Alternative (class Alternative)
 import Data.Map as M
 
 class (Alternative f) <= MatchClass f where
