@@ -1,17 +1,17 @@
 module Test.Main where
 
-import Prelude
-import Control.Monad.Eff
-import Control.Monad.Eff.Console
-import Control.Alt
-import Control.Apply
-import Data.List
+import Prelude (class Show, Unit, bind, void, ($), (<$>), (<*>), show, (<>))
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE, print)
+import Control.Alt ((<|>))
+import Control.Apply ((*>))
+import Data.List (List)
 import Data.Map as M
 
 
-import Routing
-import Routing.Match
-import Routing.Match.Class
+import Routing (matches, matchHash)
+import Routing.Match (Match, list)
+import Routing.Match.Class (num, param, bool, lit, params)
 
 data FooBar = Foo Number (M.Map String String) | Bar Boolean String | Baz (List Number)
 

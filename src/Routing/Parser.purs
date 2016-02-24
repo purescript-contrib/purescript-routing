@@ -2,17 +2,17 @@ module Routing.Parser (
   parse
   ) where
 
-import Prelude
+import Prelude ((>>>), map, ($), (<<<), (==), bind, (<*>), (<$>), (<=))
 import Control.MonadPlus (guard)
 import Data.Maybe (Maybe(), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Data.List (toList, List())
 import Data.Traversable (traverse)
-import qualified Data.Map as M
-import qualified Data.String as S
-import qualified Data.Array as A
+import Data.Map as M
+import Data.String as S
+import Data.Array as A
 
-import Routing.Types
+import Routing.Types (Route, RoutePart(Query, Path))
 
 -- | Parse part of hash. Will return `Query (Map String String)` for query
 -- | i.e. `"?foo=bar&bar=baz"` -->
