@@ -9,16 +9,22 @@
     "purescript",
     "routing"
   ],
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/slamdata/purescript-routing.git"
+  },
   "ignore": [
     "**/.*",
-    "node_modules",
     "bower_components",
+    "node_modules",
+    "output",
     "test",
-    "tests"
+    "bower.json",
+    "package.json"
   ],
   "dependencies": {
-    "purescript-aff": "^0.13.0",
+    "purescript-aff": "^0.16.0",
     "purescript-dom": "^0.2.6",
     "purescript-eff": "^0.1.1",
     "purescript-either": "^0.2.2",

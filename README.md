@@ -1,8 +1,10 @@
-[![Build Status](https://travis-ci.org/cryogenian/purescript-routing.svg?branch=master)](https://travis-ci.org/cryogenian/purescript-routing)
-
 # purescript-routing
 
-Client side routing library
+[![Latest release](http://img.shields.io/bower/v/purescript-routing.svg)](https://github.com/slamdata/purescript-routing/releases)
+[![Build Status](https://travis-ci.org/slamdata/purescript-routing.svg?branch=master)](https://travis-ci.org/slamdata/purescript-routing)
+[![Dependency Status](https://www.versioneye.com/user/projects/56e4cf18df573d00495abcf7/badge.svg?style=flat)](https://www.versioneye.com/user/projects/56e4cf18df573d00495abcf7)
+
+Client side routing library.
 
 ## Installation
 
@@ -10,14 +12,7 @@ Client side routing library
 bower install purescript-routing
 ```
 
-## Documentation
+# Module documentation
 
-- [Routing](docs/Routing.md)
-- [Routing.Hash](docs/Routing/Hash.md)
-- [Routing.Hash.Aff](docs/Routing/Hash/Aff.mfd)
-- [Routing.Match](docs/Routing/Match.md)
-- [Routing.Match.Class](docs/Routing/Match/Class.md)
-- [Routing.Match.Error](docs/Routing/Match/Error.md)
-- [Routing.Parser](docs/Routing/Parser.md)
-- [Routing.Types](docs/Routing/Types.md)
+Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-routing).
 

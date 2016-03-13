@@ -1,24 +1,13 @@
 {
-  "name": "purescript-routing",
-  "description": "Routing lib for purescript",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/slamdata/purescript-routing.git"
+  "scripts": {
+    "clean": "rimraf output && rimraf .pulp-cache",
+    "build": "pulp build",
+    "test": "pulp build --include test --to public/test.js"
   },
-  "keywords": [
-    "purescript",
-    "routing"
-  ],
-  "author": "Maxim Zimaliev <zimaliev@gmail.com>",
-  "license": "Apache 2.0",
-  "bugs": {
-    "url": "https://github.com/slamdata/purescript-routing/issues"
-  },
-  "homepage": "https://github.com/slamdata/purescript-routing",
-  "dependencies": {
-    "gulp": "^3.9.0",
-    "gulp-purescript": "^0.8.0",
-    "purescript": "^0.7.6"
+  "devDependencies": {
+    "pulp": "^8.1.0",
+    "purescript": "^0.7.6",
+    "rimraf": "^2.5.2"
   }
 }
