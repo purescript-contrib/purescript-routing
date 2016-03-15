@@ -14,5 +14,6 @@ bower install purescript-routing
 
 # Module documentation
 
-Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-routing).
+- The [guide](GUIDE.md) provides an overview of library's usage and implementation.
 
+- Module documentation is [published on Pursuit](http://pursuit.purescript.org/packages/purescript-routing).
