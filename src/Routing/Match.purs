@@ -1,24 +1,25 @@
 module Routing.Match where
 
-import Prelude
+
+import Prelude (class Applicative, class Apply, class Functor, pure, bind, const, one, id, unit, ($), (<<<), (<$>), (<>), (*), (==))
 import Data.Either (Either(..))
 import Data.Tuple (Tuple(..), snd)
 import Data.Maybe (Maybe(..))
 import Data.List (List(..), reverse)
-import Control.Alt (Alt, (<|>))
-import Control.Plus (Plus)
-import Control.Alternative (Alternative)
+import Control.Alt (class Alt, (<|>))
+import Control.Plus (class Plus)
+import Control.Alternative (class Alternative)
 import Global (readFloat, isNaN)
 import Data.Semiring.Free (Free(), free, runFree)
-import Data.Foldable
-import Data.Validation.Semiring
+import Data.Foldable (foldl)
+import Data.Validation.Semiring (V, invalid, unV)
 
 
-import qualified Data.Map as M
+import Data.Map as M
 
-import Routing.Types
-import Routing.Match.Class
-import Routing.Match.Error
+import Routing.Types (Route, RoutePart(..))
+import Routing.Match.Class (class MatchClass)
+import Routing.Match.Error (MatchError(..), showMatchError)
 
 newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a))
 unMatch :: forall a. Match a -> (Route -> V (Free MatchError) (Tuple Route a))
@@ -84,7 +85,7 @@ instance matchMatchClass :: MatchClass Match where
 
 instance matchFunctor :: Functor Match where
   map fn (Match r2e) = Match $ \r ->
-    runV invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
+    unV invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
 
 instance matchAlt :: Alt Match where
   alt (Match r2e1) (Match r2e2) = Match $ \r -> do
@@ -97,11 +98,11 @@ instance matchAlternative :: Alternative Match
 
 instance matchApply :: Apply Match where
   apply (Match r2a2b) (Match r2a) =
-    Match $ (\r -> runV (processFnErr r) processFnRes (r2a2b r))
+    Match $ (\r -> unV (processFnErr r) processFnRes (r2a2b r))
     where processFnErr r err =
-            invalid $ err * runV id (const one) (r2a r)
+            invalid $ err * unV id (const one) (r2a r)
           processFnRes (Tuple rs a2b) =
-            runV invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
+            unV invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
@@ -113,7 +114,7 @@ list (Match r2a) =
   Match $ go Nil
   where go :: List a -> Route -> V (Free MatchError) (Tuple Route (List a))
         go accum r =
-          runV
+          unV
           (const $ pure (Tuple r (reverse accum)))
           (\(Tuple rs a) -> go (Cons a accum) rs)
           (r2a r)
@@ -125,7 +126,7 @@ list (Match r2a) =
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String
 runMatch :: forall a. Match a -> Route -> Either String a
 runMatch (Match fn) route =
-  runV foldErrors (Right <<< snd) $ fn route
+  unV foldErrors (Right <<< snd) $ fn route
   where
   foldErrors errs =
     Left $ foldl (\b a -> a <> "\n" <> b) "" do
@@ -151,7 +152,7 @@ runMatch (Match fn) route =
 -- | ```
 eitherMatch :: forall a b. Match (Either a b) -> Match b
 eitherMatch (Match r2eab) = Match $ \r ->
-  runV invalid runEither $ (r2eab r)
+  unV invalid runEither $ (r2eab r)
   where
   runEither (Tuple rs eit) =
     case eit of

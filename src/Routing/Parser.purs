@@ -2,17 +2,16 @@ module Routing.Parser (
   parse
   ) where
 
-import Prelude
+import Prelude (map, bind, (>>>), ($), (<<<), (==), (<*>), (<$>), (<=))
+import Routing.Types (Route, RoutePart(..))
+import Data.Array as A
+import Data.Map as M
+import Data.String as S
 import Control.MonadPlus (guard)
-import Data.Maybe (Maybe(), fromMaybe)
-import Data.Tuple (Tuple(..))
-import Data.List (toList, List())
+import Data.List (fromFoldable, List)
+import Data.Maybe (Maybe, fromMaybe)
 import Data.Traversable (traverse)
-import qualified Data.Map as M
-import qualified Data.String as S
-import qualified Data.Array as A
-
-import Routing.Types
+import Data.Tuple (Tuple(..))
 
 -- | Parse part of hash. Will return `Query (Map String String)` for query
 -- | i.e. `"?foo=bar&bar=baz"` -->
@@ -24,7 +23,7 @@ parsePart str = fromMaybe (Path str) do
     $ traverse part2tuple parts
   where
   parts :: List String
-  parts = toList $ S.split "&" $ S.drop 1 str
+  parts = fromFoldable $ S.split "&" $ S.drop 1 str
 
   part2tuple :: String -> Maybe (Tuple String String)
   part2tuple input = do
@@ -37,4 +36,4 @@ parsePart str = fromMaybe (Path str) do
 -- | applied to every hash part (usually `decodeURIComponent`)
 parse :: (String -> String) -> String -> Route
 parse decoder hash =
-  map ( decoder >>> parsePart ) $ toList (S.split "/" hash)
+  map ( decoder >>> parsePart ) $ fromFoldable (S.split "/" hash)

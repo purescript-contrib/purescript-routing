@@ -9,16 +9,16 @@ module Routing (
   matchesAff'
   ) where
 
-import Prelude
+import Prelude (Unit, unit, pure, const, ($))
 import Control.Monad.Eff (Eff())
 import Control.Monad.Aff (Aff(), makeAff)
 import Data.Maybe (Maybe(..))
-import Data.Either (Either(), either)
+import Data.Either (Either(..), either)
 import Data.Tuple (Tuple(..))
-import qualified Data.String.Regex as R
+import Data.String.Regex as R
 
-import Routing.Parser
-import Routing.Match
+import Routing.Parser (parse)
+import Routing.Match (Match, runMatch)
 
 
 foreign import decodeURIComponent :: String -> String
@@ -30,7 +30,10 @@ hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 hashes cb =
   hashChanged $ \old new -> do
     cb (dropHash old) (dropHash new)
-  where dropHash h = R.replace (R.regex "^[^#]*#" R.noFlags) "" h
+  where dropHash h =
+          case R.regex "^[^#]*#" R.noFlags of
+            Right regX -> R.replace regX "" h
+            Left _     -> h
 
 
 -- | Stream of hash changed, callback called when new hash can be matched
