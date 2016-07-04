@@ -1,17 +1,16 @@
 module Test.Main where
 
-import Prelude
-import Control.Monad.Eff
-import Control.Monad.Eff.Console
-import Control.Alt
-import Control.Apply
-import Data.List
+import Prelude (class Show, Unit, show, ($), (<$>), (*>), (<*>), (<>))
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE(), logShow)
+import Control.Alt ((<|>))
+import Data.List (List)
 import Data.Map as M
 
 
-import Routing
-import Routing.Match
-import Routing.Match.Class
+import Routing (matchHash)
+import Routing.Match (Match, list)
+import Routing.Match.Class (num, param, bool, lit, params)
 
 data FooBar = Foo Number (M.Map String String) | Bar Boolean String | Baz (List Number)
 
@@ -29,7 +28,10 @@ routing =
 
 main :: Eff (console :: CONSOLE) Unit
 main = do
-  print $ matchHash routing "foo/12/?welp='hi'&b=false"
-  matches routing $ \old new -> void do
-    print old
-    print new
+  logShow $ matchHash routing "foo/12/?welp='hi'&b=false"
+
+  -- (minimal test for browser)
+
+  -- matches routing $ \old new -> void do
+  --   logShow old
+  --   logShow new
