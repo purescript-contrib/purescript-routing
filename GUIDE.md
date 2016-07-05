@@ -36,6 +36,8 @@ data Locations
 We'll use `Locations` instead of `Routes` to avoid confusion with the `Route` (singular) type exposed by the library. But let's discuss the types later.  For now, we'll see it in action:
 
 ```purescript
+oneSlash :: Match Unit
+oneSlash = lit "/"
 
 homeSlash :: Match Unit
 homeSlash = lit ""
