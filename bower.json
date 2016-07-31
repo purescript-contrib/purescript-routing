@@ -24,10 +24,10 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-dom": "^1.1.0",
+    "purescript-dom": "^2.0.0",
     "purescript-eff": "^1.0.0",
     "purescript-either": "^1.0.0",
-    "purescript-globals": "^1.0.0",
+    "purescript-globals": "^1.1.0",
     "purescript-lists": "^1.0.1",
     "purescript-maps": "^1.1.0",
     "purescript-maybe": "^1.0.0",
@@ -35,7 +35,7 @@
     "purescript-semirings": "^1.0.0",
     "purescript-tuples": "^1.0.0",
     "purescript-validation": "^1.0.0",
-    "purescript-aff": "^1.0.0",
+    "purescript-aff": "^1.1.0",
     "purescript-control": "^1.0.0",
     "purescript-console": "^1.0.0"
   },
