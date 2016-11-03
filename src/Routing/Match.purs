@@ -1,30 +1,33 @@
 module Routing.Match where
 
+import Prelude
 
-import Prelude (class Applicative, class Apply, class Functor, pure, bind, const, one, id, unit, ($), (<<<), (<$>), (<>), (*), (==))
-import Data.Either (Either(..))
-import Data.Tuple (Tuple(..), snd)
-import Data.Maybe (Maybe(..))
-import Data.List (List(..), reverse)
 import Control.Alt (class Alt, (<|>))
-import Control.Plus (class Plus)
 import Control.Alternative (class Alternative)
-import Global (readFloat, isNaN)
-import Data.Semiring.Free (Free(), free)
+import Control.Plus (class Plus)
+
+import Data.Either (Either(..))
 import Data.Foldable (foldl)
-import Data.Validation.Semiring (V, invalid, unV)
-import Data.Newtype (unwrap)
-
-
+import Data.List (List(..), reverse)
 import Data.Map as M
+import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, unwrap)
+import Data.Semiring.Free (Free(), free)
+import Data.Tuple (Tuple(..), snd)
+import Data.Validation.Semiring (V, invalid, unV)
 
-import Routing.Types (Route, RoutePart(..))
+import Global (readFloat, isNaN)
+
 import Routing.Match.Class (class MatchClass)
 import Routing.Match.Error (MatchError(..), showMatchError)
+import Routing.Types (Route, RoutePart(..))
 
 newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a))
-unMatch :: forall a. Match a -> (Route -> V (Free MatchError) (Tuple Route a))
-unMatch (Match a) = a
+
+-- Manual instance due to the `Route` synonym in the above
+instance newtypeMatch :: Newtype (Match a) (List RoutePart -> V (Free MatchError) (Tuple (List RoutePart) a)) where
+  wrap = Match
+  unwrap (Match m) = m
 
 instance matchMatchClass :: MatchClass Match where
   lit input = Match \route ->
