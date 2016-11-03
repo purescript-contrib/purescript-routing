@@ -27,7 +27,7 @@
     "purescript-dom": "^3.1.0",
     "purescript-eff": "^2.0.0",
     "purescript-either": "^2.0.0",
-    "purescript-globals": "^1.0.0",
+    "purescript-globals": "^2.0.0",
     "purescript-lists": "^3.2.0",
     "purescript-maps": "^2.0.0",
     "purescript-maybe": "^2.0.1",
