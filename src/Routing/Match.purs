@@ -10,9 +10,10 @@ import Control.Alt (class Alt, (<|>))
 import Control.Plus (class Plus)
 import Control.Alternative (class Alternative)
 import Global (readFloat, isNaN)
-import Data.Semiring.Free (Free(), free, runFree)
+import Data.Semiring.Free (Free(), free)
 import Data.Foldable (foldl)
 import Data.Validation.Semiring (V, invalid, unV)
+import Data.Newtype (unwrap)
 
 
 import Data.Map as M
@@ -130,7 +131,7 @@ runMatch (Match fn) route =
   where
   foldErrors errs =
     Left $ foldl (\b a -> a <> "\n" <> b) "" do
-      es <- reverse <$> runFree errs
+      es <- reverse <$> unwrap errs
       pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
 
 

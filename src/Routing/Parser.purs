@@ -19,15 +19,15 @@ import Data.Tuple (Tuple(..))
 parsePart :: String -> RoutePart
 parsePart str = fromMaybe (Path str) do
   guard $ S.take 1 str == "?"
-  map (Query <<< M.fromList)
+  map (Query <<< M.fromFoldable)
     $ traverse part2tuple parts
   where
   parts :: List String
-  parts = fromFoldable $ S.split "&" $ S.drop 1 str
+  parts = fromFoldable $ S.split (S.Pattern "&") $ S.drop 1 str
 
   part2tuple :: String -> Maybe (Tuple String String)
   part2tuple input = do
-    let keyVal = S.split "=" input
+    let keyVal = S.split (S.Pattern "=") input
     guard $ A.length keyVal <= 2
     Tuple <$> (A.head keyVal) <*> (keyVal A.!! 1)
 
@@ -36,4 +36,4 @@ parsePart str = fromMaybe (Path str) do
 -- | applied to every hash part (usually `decodeURIComponent`)
 parse :: (String -> String) -> String -> Route
 parse decoder hash =
-  map ( decoder >>> parsePart ) $ fromFoldable (S.split "/" hash)
+  map ( decoder >>> parsePart ) $ fromFoldable (S.split (S.Pattern "/") hash)

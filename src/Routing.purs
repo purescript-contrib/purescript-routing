@@ -16,6 +16,7 @@ import Data.Maybe (Maybe(..))
 import Data.Either (Either(..), either)
 import Data.Tuple (Tuple(..))
 import Data.String.Regex as R
+import Data.String.Regex.Flags as RF
 
 import Routing.Parser (parse)
 import Routing.Match (Match, runMatch)
@@ -31,7 +32,7 @@ hashes cb =
   hashChanged $ \old new -> do
     cb (dropHash old) (dropHash new)
   where dropHash h =
-          case R.regex "^[^#]*#" R.noFlags of
+          case R.regex "^[^#]*#" RF.noFlags of
             Right regX -> R.replace regX "" h
             Left _     -> h
 
