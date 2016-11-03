@@ -24,22 +24,22 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-dom": "^2.0.0",
-    "purescript-eff": "^1.0.0",
-    "purescript-either": "^1.0.0",
-    "purescript-globals": "^1.1.0",
-    "purescript-lists": "^1.0.1",
-    "purescript-maps": "^1.1.0",
-    "purescript-maybe": "^1.0.0",
-    "purescript-prelude": "^1.0.1",
-    "purescript-semirings": "^1.0.0",
-    "purescript-tuples": "^1.0.0",
-    "purescript-validation": "^1.0.0",
-    "purescript-aff": "^1.1.0",
-    "purescript-control": "^1.0.0",
-    "purescript-console": "^1.0.0"
+    "purescript-dom": "^3.1.0",
+    "purescript-eff": "^2.0.0",
+    "purescript-either": "^2.0.0",
+    "purescript-globals": "^2.0.0",
+    "purescript-lists": "^3.2.0",
+    "purescript-maps": "^2.0.0",
+    "purescript-maybe": "^2.0.1",
+    "purescript-prelude": "^2.1.0",
+    "purescript-semirings": "^3.0.0",
+    "purescript-tuples": "^3.0.0",
+    "purescript-validation": "^2.0.0",
+    "purescript-aff": "^2.0.0",
+    "purescript-control": "^2.0.0",
+    "purescript-console": "^2.0.0"
   },
   "devDependencies": {
-    "purescript-console": "^1.0.0"
+    "purescript-console": "^2.0.0"
   }
 }
