@@ -8,6 +8,7 @@ import Control.Plus (class Plus)
 
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
+import Data.Int (fromString)
 import Data.List (List(..), reverse)
 import Data.Map as M
 import Data.Maybe (Maybe(..))
@@ -49,6 +50,14 @@ instance matchMatchClass :: MatchClass Match where
           pure $ Tuple rs res
       _ ->
         invalid $ free ExpectedNumber
+
+  int = Match \route ->
+    case route of
+      Cons (Path input) rs -> case fromString input of
+        Nothing -> invalid $ free ExpectedInt
+        Just res -> pure $ Tuple rs res
+      _ ->
+        invalid $ free ExpectedInt
 
   bool = Match \route ->
     case route of
