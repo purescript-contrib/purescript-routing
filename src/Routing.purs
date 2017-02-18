@@ -3,8 +3,8 @@ module Routing (
   hashes,
   matches,
   matches',
-  matchHash,
-  matchHash',
+  match,
+  matchWith,
   matchesAff,
   matchesAff'
   ) where
@@ -46,7 +46,7 @@ matches = matches' decodeURIComponent
 matches' :: forall e a. (String -> String) ->
             Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
 matches' decoder routing cb = hashes $ \old new ->
-  let mr = matchHash' decoder routing
+  let mr = matchWith decoder routing
       fst = either (const Nothing) Just $ mr old
   in either (const $ pure unit) (cb fst) $ mr new
 
@@ -61,8 +61,8 @@ matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
 matchesAff = matchesAff' decodeURIComponent
 
 
-matchHash :: forall a. Match a -> String -> Either String a
-matchHash = matchHash' decodeURIComponent
+match :: forall a. Match a -> String -> Either String a
+match = matchWith decodeURIComponent
 
-matchHash' :: forall a. (String -> String) -> Match a -> String -> Either String a
-matchHash' decoder matcher hash = runMatch matcher $ parse decoder hash
+matchWith :: forall a. (String -> String) -> Match a -> String -> Either String a
+matchWith decoder matcher hash = runMatch matcher $ parse decoder hash
