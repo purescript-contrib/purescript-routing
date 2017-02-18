@@ -26,6 +26,9 @@ class (Alternative f) <= MatchClass f where
   -- | `num` matches any numerical path component.
   num :: f Number
 
+  -- | `int` matches any integer path component.
+  int :: f Int
+
   -- | `bool` matches any boolean path component.
   bool :: f Boolean
 

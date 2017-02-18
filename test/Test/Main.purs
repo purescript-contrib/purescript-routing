@@ -1,6 +1,6 @@
 module Test.Main where
 
-import Prelude (class Show, Unit, show, ($), (<$>), (*>), (<*>), (<>))
+import Prelude (class Show, Unit, bind, show, ($), (<$>), (*>), (<*>), (<>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE(), logShow)
 import Control.Alt ((<|>))
@@ -10,25 +10,32 @@ import Data.Map as M
 
 import Routing (matchHash)
 import Routing.Match (Match, list)
-import Routing.Match.Class (num, param, bool, lit, params)
+import Routing.Match.Class (num, int, param, bool, lit, params)
 
-data FooBar = Foo Number (M.Map String String) | Bar Boolean String | Baz (List Number)
+data FooBar
+  = Foo Number (M.Map String String)
+  | Bar Boolean String
+  | Baz (List Number)
+  | Quux Int
 
 instance showFooBar :: Show FooBar where
   show (Foo num q) = "(Foo " <> show num <> " " <> show q <> ")"
   show (Bar bool str) = "(Bar " <> show bool <> " " <> show str <> ")"
   show (Baz lst) = "(Baz " <> show lst <> ")"
+  show (Quux i) = "(Quux " <> show i <> ")"
 
 routing :: Match FooBar
 routing =
   Foo <$> (lit "foo" *> num) <*> params
     <|> Bar <$> (lit "bar" *> bool) <*> (param "baz")
+    <|> Quux <$> (lit "" *> lit "quux" *> int)
     <|> Baz <$> (list num)
 
 
 main :: Eff (console :: CONSOLE) Unit
 main = do
   logShow $ matchHash routing "foo/12/?welp='hi'&b=false"
+  logShow $ matchHash routing "/quux/42"
 
   -- (minimal test for browser)
 

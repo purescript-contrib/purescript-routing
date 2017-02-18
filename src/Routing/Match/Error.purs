@@ -9,6 +9,8 @@ data MatchError
   | ExpectedBoolean
     -- expected numeric literal
   | ExpectedNumber
+    -- expected integer literal
+  | ExpectedInt
     -- expected string literal (found query probably or eol) 
   | ExpectedString
     -- expected query found path part or eol
@@ -27,6 +29,7 @@ showMatchError err =
     KeyNotFound str -> "key: " <> str <> " has not found in query part"
     ExpectedQuery -> "expected query - found path"
     ExpectedNumber -> "expected number"
+    ExpectedInt -> "expected int"
     ExpectedBoolean -> "expected boolean"
     ExpectedString -> "expected string var"
     ExpectedPathPart -> "expected path part, found query"
