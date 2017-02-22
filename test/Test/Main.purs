@@ -8,7 +8,7 @@ import Data.List (List)
 import Data.Map as M
 
 
-import Routing (matchHash)
+import Routing (match)
 import Routing.Match (Match, list)
 import Routing.Match.Class (num, int, param, bool, lit, params)
 
@@ -34,8 +34,8 @@ routing =
 
 main :: Eff (console :: CONSOLE) Unit
 main = do
-  logShow $ matchHash routing "foo/12/?welp='hi'&b=false"
-  logShow $ matchHash routing "/quux/42"
+  logShow $ match routing "foo/12/?welp='hi'&b=false"
+  logShow $ match routing "/quux/42"
 
   -- (minimal test for browser)
 
