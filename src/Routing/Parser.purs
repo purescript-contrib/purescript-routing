@@ -2,7 +2,7 @@ module Routing.Parser (
   parse
   ) where
 
-import Prelude (map, bind, (>>>), ($), (<<<), (==), (<*>), (<$>), (<=))
+import Prelude (map, discard, (>>>), ($), (<<<), (==), (<*>), (<$>), (<=))
 import Routing.Types (Route, RoutePart(..))
 import Data.Array as A
 import Data.Map as M
