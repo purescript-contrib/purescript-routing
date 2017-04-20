@@ -7,6 +7,8 @@ data MatchError
   = UnexpectedPath String
     -- expected "true" or "false"
   | ExpectedBoolean
+    -- expected end
+  | ExpectedEnd
     -- expected numeric literal
   | ExpectedNumber
     -- expected integer literal
@@ -31,6 +33,7 @@ showMatchError err =
     ExpectedNumber -> "expected number"
     ExpectedInt -> "expected int"
     ExpectedBoolean -> "expected boolean"
+    ExpectedEnd -> "expected end"
     ExpectedString -> "expected string var"
     ExpectedPathPart -> "expected path part, found query"
     Fail str -> "match error: " <> str
