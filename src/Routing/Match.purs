@@ -13,7 +13,7 @@ import Data.List (List(..), reverse)
 import Data.Map as M
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
-import Data.Semiring.Free (Free(), free)
+import Data.Semiring.Free (Free, free)
 import Data.Tuple (Tuple(..), snd)
 import Data.Validation.Semiring (V, invalid, unV)
 
@@ -92,6 +92,11 @@ instance matchMatchClass :: MatchClass Match where
         pure $ Tuple rs map
       _ ->
         invalid $ free ExpectedQuery
+
+  end = Match \route ->
+    case route of
+      Nil -> pure $ Tuple Nil unit
+      _ -> invalid $ free ExpectedEnd
 
   fail msg = Match \_ ->
     invalid $ free $ Fail msg

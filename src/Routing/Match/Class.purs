@@ -32,4 +32,7 @@ class (Alternative f) <= MatchClass f where
   -- | `bool` matches any boolean path component.
   bool :: f Boolean
 
+  -- | `end` matches the end of a route.
+  end :: f Unit
+
   fail :: forall a. String -> f a
