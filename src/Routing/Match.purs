@@ -176,3 +176,12 @@ eitherMatch (Match r2eab) = Match $ \r ->
     case eit of
       Left _ -> invalid $ free $ Fail "Nested check failed"
       Right res -> pure $ Tuple rs res
+
+-- | useful for matching optional params at the end of a path
+-- | ```
+-- | optParams = maybe M.empty id <$> optionalMatch params <* end
+-- | runMatch (lit "path" *> optParams) (parse id "path/?a=1")
+-- | -- (Right (fromFoldable [(Tuple "a" "1")]))
+-- | ```
+optionalMatch :: forall a. Match a -> Match (Maybe a)
+optionalMatch (Match fn) = Match (\route -> unV (const $ pure (Tuple route Nothing)) (pure <<< map Just) $ fn route)
