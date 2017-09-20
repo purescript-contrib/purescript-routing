@@ -35,7 +35,7 @@
     "purescript-semirings": "^4.0.0",
     "purescript-tuples": "^4.0.0",
     "purescript-validation": "^3.0.0",
-    "purescript-aff": "^3.0.0",
+    "purescript-aff": "^4.0.0",
     "purescript-control": "^3.0.0",
     "purescript-console": "^3.0.0",
     "purescript-integers": "^3.0.0"
