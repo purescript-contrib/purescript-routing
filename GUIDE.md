@@ -5,7 +5,7 @@ A couple notes upfront:
 * This library facilitates hash-based routing.  If you're looking to do pushstate routing with the [history](https://developer.mozilla.org/en-US/docs/Web/API/History_API) object, then you are in the wrong place.
 * Routes are declared using [applicative](https://pursuit.purescript.org/packages/purescript-prelude/0.1.4/docs/Prelude#t:Applicative) syntax.  If you're not yet comfortable with applicatives, see this [chapter](http://learnyouahaskell.com/functors-applicative-functors-and-monoids#applicative-functors) or this [paper](http://www.staff.city.ac.uk/~ross/papers/Applicative.pdf).
 
-####Usage
+#### Usage
 
 First, define some locations:
 
