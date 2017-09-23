@@ -2,14 +2,14 @@ module Routing.Parser (
   parse
   ) where
 
-import Data.Array as A
-import Data.Map as M
-import Data.String as S
 import Control.MonadPlus (guard)
+import Data.Array as A
 import Data.Either (fromRight)
 import Data.List (fromFoldable, List)
+import Data.Map as M
 import Data.Maybe (Maybe, fromMaybe)
-import Data.String.Regex (regex, split) as R
+import Data.String as S
+import Data.String.Regex (Regex, regex, split) as R
 import Data.String.Regex.Flags (noFlags) as R
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -36,8 +36,11 @@ parsePart str = fromMaybe (Path str) do
     Tuple <$> (A.head keyVal) <*> (keyVal A.!! 1)
 
 
+splitRegex :: R.Regex
+splitRegex = unsafePartial fromRight $ R.regex "\\/|(?=\\?)" R.noFlags
+
 -- | Parse hash string to `Route` with `decoder` function
 -- | applied to every hash part (usually `decodeURIComponent`)
 parse :: (String -> String) -> String -> Route
 parse decoder hash =
-  map ( decoder >>> parsePart ) $ fromFoldable (R.split (unsafePartial fromRight $ R.regex "\\/|(?=\\?)" R.noFlags) hash)
+  map ( decoder >>> parsePart ) $ fromFoldable (R.split splitRegex hash)
