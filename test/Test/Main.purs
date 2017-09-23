@@ -39,6 +39,7 @@ routing =
 main :: Eff (console :: CONSOLE) Unit
 main = do
   print "Foo: " $ match routing "foo/12/?welp='hi'&b=false" -- foo
+  print "Foo: " $ match routing "foo/12?welp='hi'&b=false" -- foo
   print "Quux: " $ match routing "/quux/42" -- quux
   print "Baz: " $ match routing "/123/" -- baz
   print "End: " $ match routing "/1" -- end
