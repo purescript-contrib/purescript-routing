@@ -38,7 +38,7 @@ routing =
     <|> Quux <$> (lit "" *> lit "quux" *> int)
     -- Order matters here.  `list` is greedy, and `end` wont match after it
     <|> End <$> (lit "" *> int <* end)
-    <|> Baz <$> (lit "" *> list num)
+    <|> Baz <$> (list num)
 
 
 main :: Eff (assert :: ASSERT, console :: CONSOLE) Unit
@@ -46,8 +46,9 @@ main = do
   assertEq (match routing "foo/12/?welp='hi'&b=false") (Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"])))
   assertEq (match routing "foo/12?welp='hi'&b=false") (Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"])))
   assertEq (match routing "/quux/42") (Right (Quux 42))
-  assertEq (match routing "/123/") (Right (Baz (L.fromFoldable [123.0])))
+  assertEq (match routing "123/") (Right (Baz (L.fromFoldable [123.0])))
   assertEq (match routing "/1") (Right (End 1))
+  assertEq (match routing "foo/0/?test=a/b/c") (Right (Foo 0.0 (M.fromFoldable [Tuple "test" "a/b/c"])))
 
 assertEq
   :: forall a eff
