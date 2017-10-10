@@ -9,22 +9,21 @@ module Routing (
   matchesAff'
   ) where
 
-import Control.Monad.Aff (Aff, makeAff, nonCanceler)
+import Prelude
+
+import Control.Monad.Aff (Aff, makeAff)
 import Control.Monad.Eff (Eff)
 import Data.Either (Either(..), either)
 import Data.Maybe (Maybe(..))
 import Data.String.Regex as R
 import Data.String.Regex.Flags as RF
 import Data.Tuple (Tuple(..))
-import Prelude (Unit, const, pure, unit, ($), (<$))
 import Routing.Match (Match, runMatch)
 import Routing.Parser (parse)
-
 
 foreign import decodeURIComponent :: String -> String
 
 foreign import hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
-
 
 hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
 hashes cb =
@@ -52,9 +51,9 @@ matches' decoder routing cb = hashes $ \old new ->
 matchesAff' :: forall e a. (String -> String) ->
                Match a -> Aff e (Tuple (Maybe a) a)
 matchesAff' decoder routing =
-  makeAff \k -> nonCanceler <$
+  makeAff \_ cb ->
     matches' decoder routing \old new ->
-      k $ Right $ Tuple old new
+      cb $ Tuple old new
 
 matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
 matchesAff = matchesAff' decodeURIComponent
