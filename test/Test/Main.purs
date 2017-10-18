@@ -45,6 +45,7 @@ main :: Eff (assert :: ASSERT, console :: CONSOLE) Unit
 main = do
   assertEq (match routing "foo/12/?welp='hi'&b=false") (Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"])))
   assertEq (match routing "foo/12?welp='hi'&b=false") (Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"])))
+  assertEq (match routing "bar/true?baz=test") (Right (Bar true "test"))
   assertEq (match routing "/quux/42") (Right (Quux 42))
   assertEq (match routing "123/") (Right (Baz (L.fromFoldable [123.0])))
   assertEq (match routing "/1") (Right (End 1))
