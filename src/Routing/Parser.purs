@@ -38,7 +38,7 @@ parse decoder hash =
   where
     pathParts str =
       let
-        parts = L.fromFoldable $ map Path (S.split (S.Pattern "/") str)
+        parts = L.fromFoldable $ map (Path <<< decoder) (S.split (S.Pattern "/") str)
       in
         case L.unsnoc parts of
           Just { init, last: Path "" } -> init
