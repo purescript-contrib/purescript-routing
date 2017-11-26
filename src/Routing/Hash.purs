@@ -1,12 +1,27 @@
-module Routing.Hash where
+module Routing.Hash
+  ( getHash
+  , setHash
+  , modifyHash
+  ) where
 
-import Prelude (Unit, (>>=), (<$>))
-import Control.Monad.Eff (Eff())
-import DOM (DOM())
+import Prelude
 
-foreign import setHash :: forall e. String -> Eff (dom :: DOM |e) Unit
+import Control.Monad.Eff (Eff)
+import DOM (DOM)
+import DOM.HTML (window)
+import DOM.HTML.Location as L
+import DOM.HTML.Window (location)
+import Data.Maybe (fromMaybe)
+import Data.String (Pattern(..), stripPrefix)
 
-foreign import getHash :: forall e. Eff (dom :: DOM |e) String
+-- | Gets the global location hash.
+getHash :: forall eff. Eff (dom :: DOM | eff) String
+getHash = window >>= location >>= L.hash >>> map (stripPrefix (Pattern "#") >>> fromMaybe "")
 
-modifyHash :: forall e. (String -> String) -> Eff (dom :: DOM|e) Unit
+-- | Sets the global location hash.
+setHash :: forall eff. String -> Eff (dom :: DOM | eff) Unit
+setHash h = window >>= location >>= L.setHash h
+
+-- | Modifies the global location hash.
+modifyHash :: forall eff. (String -> String) -> Eff (dom :: DOM | eff) Unit
 modifyHash fn = (fn <$> getHash) >>= setHash

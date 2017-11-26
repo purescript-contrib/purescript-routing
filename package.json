@@ -3,7 +3,8 @@
   "scripts": {
     "clean": "rimraf output && rimraf .pulp-cache",
     "build": "pulp build -- --censor-lib --strict",
-    "test": "pulp test"
+    "test": "pulp test",
+    "test:browser": "pulp build -I test -m Test.Browser --to test/dist/bundle.js"
   },
   "devDependencies": {
     "pulp": "^11.0.0",

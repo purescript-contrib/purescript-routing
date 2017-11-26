@@ -1,67 +1,94 @@
-module Routing (
-  hashChanged,
-  hashes,
-  matches,
-  matches',
-  match,
-  matchWith,
-  matchesAff,
-  matchesAff'
+module Routing
+  ( RoutingEffects
+  , foldHashes
+  , hashes
+  , matches
+  , matchesWith
+  , match
+  , matchWith
   ) where
 
-import Control.Monad.Aff (Aff, makeAff, nonCanceler)
+import Prelude
+
 import Control.Monad.Eff (Eff)
-import Data.Either (Either(..), either)
+import Control.Monad.Eff.Ref (REF, newRef, readRef, writeRef)
+import DOM (DOM)
+import DOM.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import DOM.HTML (window)
+import DOM.HTML.Event.EventTypes (hashchange)
+import DOM.HTML.Types (windowToEventTarget)
+import Data.Either (Either, either)
 import Data.Maybe (Maybe(..))
-import Data.String.Regex as R
-import Data.String.Regex.Flags as RF
-import Data.Tuple (Tuple(..))
-import Prelude (Unit, const, pure, unit, ($), (<$))
+import Global (decodeURIComponent)
+import Routing.Hash (getHash)
 import Routing.Match (Match, runMatch)
 import Routing.Parser (parse)
 
+type RoutingEffects eff =
+  ( dom :: DOM
+  , ref :: REF
+  | eff
+  )
 
-foreign import decodeURIComponent :: String -> String
+-- | Folds effectfully over hash changes given a callback and an initial hash.
+-- | The provided String is the hash portion of the `Location` with the '#'
+-- | prefix stripped. Returns an effect which will remove the listener.
+foldHashes
+  :: forall eff a
+   . (a -> String -> Eff (RoutingEffects eff) a)
+  -> (String -> Eff (RoutingEffects eff) a)
+  -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
+foldHashes cb init = do
+  ref <- newRef =<< init =<< getHash
+  win <- windowToEventTarget <$> window
+  let listener = eventListener \_ -> join (cb <$> readRef ref <*> getHash) >>= writeRef ref
+  addEventListener hashchange listener false win
+  pure $ removeEventListener hashchange listener false win
 
-foreign import hashChanged :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
+-- | Runs the callback on every hash change providing the previous hash and the
+-- | latest hash. The initial hash is the empty string. The provided String is
+-- | the hash portion of the `Location` with the '#' prefix stripped. Returns
+-- | an effect which will remove the listener.
+hashes
+  :: forall eff
+   . (String -> String -> Eff (RoutingEffects eff) Unit)
+  -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
+hashes cb = foldHashes go (go "")
+  where
+  go a b = cb a b $> b
 
+-- | Runs the callback on every hash change using a given `Match` parser to
+-- | extract a route from the hash. If a hash fails to parse, it is ignored.
+-- | To avoid dropping hashes, provide a fallback alternative in your parser.
+-- | Returns an effect which will remove the listener.
+matches
+  :: forall eff a
+   . Match a
+  -> (Maybe a -> a -> Eff (RoutingEffects eff) Unit)
+  -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
+matches = matchesWith decodeURIComponent
 
-hashes :: forall e. (String -> String -> Eff e Unit) -> Eff e Unit
-hashes cb =
-  hashChanged $ \old new -> do
-    cb (dropHash old) (dropHash new)
-  where dropHash h =
-          case R.regex "^[^#]*#" RF.noFlags of
-            Right regX -> R.replace regX "" h
-            Left _     -> h
+-- | Runs the callback on every hash change using a given custom String decoder
+-- | and a `Match` parser to extract a route from the hash. If a hash fails to
+-- | parse, it is ignored. To avoid dropping hashes, provide a fallback
+-- | alternative in your parser. Returns an effect which will remove the
+-- | listener.
+matchesWith
+  :: forall eff a
+   . (String -> String)
+  -> Match a
+  -> (Maybe a -> a -> Eff (RoutingEffects eff) Unit)
+  -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
+matchesWith decoder matcher cb = do
+  let parser = matchWith decoder matcher
+  foldHashes
+    (\old -> either (\_ -> pure old) (\a -> cb old a $> Just a) <<< parser)
+    (pure <<< either (const Nothing) Just <<< parser)
 
-
--- | Stream of hash changed, callback called when new hash can be matched
--- | First argument of callback is `Just a` when old hash can be matched
--- | and `Nothing` when it can't.
-matches :: forall e a. Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
-matches = matches' decodeURIComponent
-
-matches' :: forall e a. (String -> String) ->
-            Match a -> (Maybe a -> a -> Eff e Unit) -> Eff e Unit
-matches' decoder routing cb = hashes $ \old new ->
-  let mr = matchWith decoder routing
-      fst = either (const Nothing) Just $ mr old
-  in either (const $ pure unit) (cb fst) $ mr new
-
-matchesAff' :: forall e a. (String -> String) ->
-               Match a -> Aff e (Tuple (Maybe a) a)
-matchesAff' decoder routing =
-  makeAff \k -> nonCanceler <$
-    matches' decoder routing \old new ->
-      k $ Right $ Tuple old new
-
-matchesAff :: forall e a. Match a -> Aff e (Tuple (Maybe a) a)
-matchesAff = matchesAff' decodeURIComponent
-
-
+-- | Runs a `Match` parser.
 match :: forall a. Match a -> String -> Either String a
 match = matchWith decodeURIComponent
 
+-- | Runs a `Match` parser given a custom String decoder.
 matchWith :: forall a. (String -> String) -> Match a -> String -> Either String a
-matchWith decoder matcher hash = runMatch matcher $ parse decoder hash
+matchWith decoder matcher = runMatch matcher <<< parse decoder
