@@ -17,8 +17,9 @@ import DOM.Event.EventTarget (addEventListener, eventListener, removeEventListen
 import DOM.HTML (window)
 import DOM.HTML.Event.EventTypes (hashchange)
 import DOM.HTML.Types (windowToEventTarget)
-import Data.Either (Either, either)
-import Data.Maybe (Maybe(..))
+import Data.Either (Either)
+import Data.Foldable (class Foldable, find)
+import Data.Maybe (Maybe(..), maybe)
 import Global (decodeURIComponent)
 import Routing.Hash (getHash)
 import Routing.Match (Match, runMatch)
@@ -41,21 +42,18 @@ foldHashes
 foldHashes cb init = do
   ref <- newRef =<< init =<< getHash
   win <- windowToEventTarget <$> window
-  let listener = eventListener \_ -> join (cb <$> readRef ref <*> getHash) >>= writeRef ref
+  let listener = eventListener \_ -> writeRef ref =<< join (cb <$> readRef ref <*> getHash)
   addEventListener hashchange listener false win
   pure $ removeEventListener hashchange listener false win
 
 -- | Runs the callback on every hash change providing the previous hash and the
--- | latest hash. The initial hash is the empty string. The provided String is
--- | the hash portion of the `Location` with the '#' prefix stripped. Returns
--- | an effect which will remove the listener.
+-- | latest hash. The provided String is the hash portion of the `Location` with
+-- | the '#' prefix stripped. Returns an effect which will remove the listener.
 hashes
   :: forall eff
-   . (String -> String -> Eff (RoutingEffects eff) Unit)
+   . (Maybe String -> String -> Eff (RoutingEffects eff) Unit)
   -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
-hashes cb = foldHashes go (go "")
-  where
-  go a b = cb a b $> b
+hashes = matchesWith Just
 
 -- | Runs the callback on every hash change using a given `Match` parser to
 -- | extract a route from the hash. If a hash fails to parse, it is ignored.
@@ -66,24 +64,24 @@ matches
    . Match a
   -> (Maybe a -> a -> Eff (RoutingEffects eff) Unit)
   -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
-matches = matchesWith decodeURIComponent
+matches matcher = matchesWith (matchWith decodeURIComponent matcher)
 
--- | Runs the callback on every hash change using a given custom String decoder
--- | and a `Match` parser to extract a route from the hash. If a hash fails to
--- | parse, it is ignored. To avoid dropping hashes, provide a fallback
--- | alternative in your parser. Returns an effect which will remove the
--- | listener.
+-- | Runs the callback on every hash change using a given custom parser to
+-- | extract a route from the hash. If a hash fails to parse, it is ignored.
+-- | To avoid dropping hashes, provide a fallback alternative in your parser.
+-- | Returns an effect which will remove the listener.
 matchesWith
-  :: forall eff a
-   . (String -> String)
-  -> Match a
+  :: forall eff f a
+   . Foldable f
+  => (String -> f a)
   -> (Maybe a -> a -> Eff (RoutingEffects eff) Unit)
   -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
-matchesWith decoder matcher cb = do
-  let parser = matchWith decoder matcher
-  foldHashes
-    (\old -> either (\_ -> pure old) (\a -> cb old a $> Just a) <<< parser)
-    (pure <<< either (const Nothing) Just <<< parser)
+matchesWith parser cb = foldHashes go (go Nothing)
+  where
+  go a =
+    maybe (pure a) (\b -> Just b <$ cb a b)
+      <<< find (const true)
+      <<< parser
 
 -- | Runs a `Match` parser.
 match :: forall a. Match a -> String -> Either String a

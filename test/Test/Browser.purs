@@ -15,7 +15,7 @@ import DOM.Node.Element (setAttribute)
 import DOM.Node.Node (appendChild)
 import DOM.Node.Types (Document, Node, elementToNode, textToNode)
 import Data.Foldable (oneOf)
-import Data.Maybe (maybe)
+import Data.Maybe (Maybe(..), maybe)
 import Routing (RoutingEffects, hashes)
 import Routing.Hash (setHash)
 import Routing.Match (Match)
@@ -84,11 +84,11 @@ runTests = do
     assert testName = assertEq testName true
 
   _ <- hashes case _, _ of
-    "", ""   -> assert "Hashes: Initial value" true
-    "", "a"  -> assert "Hashes: ? -> a" true *> setHash "b"
-    "a", "b" -> assert "Hashes: a -> b" true *> setHash ""
-    "b", ""  -> assert "Hashes: b -> ?" true
-    _, _     -> assert "Hashes: fail" false
+    Nothing, ""   -> assert "Hashes: Initial value" true
+    Just "", "a"  -> assert "Hashes: ? -> a" true *> setHash "b"
+    Just "a", "b" -> assert "Hashes: a -> b" true *> setHash ""
+    Just "b", ""  -> assert "Hashes: b -> ?" true
+    _, _          -> assert "Hashes: fail" false
 
   setHash "a"
 
