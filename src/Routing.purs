@@ -64,7 +64,7 @@ matches
    . Match a
   -> (Maybe a -> a -> Eff (RoutingEffects eff) Unit)
   -> Eff (RoutingEffects eff) (Eff (RoutingEffects eff) Unit)
-matches matcher = matchesWith (matchWith decodeURIComponent matcher)
+matches = matchesWith <<< match
 
 -- | Runs the callback on every hash change using a given custom parser to
 -- | extract a route from the hash. If a hash fails to parse, it is ignored.
