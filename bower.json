@@ -38,7 +38,8 @@
     "purescript-aff": "^4.0.0",
     "purescript-control": "^3.0.0",
     "purescript-console": "^3.0.0",
-    "purescript-integers": "^3.0.0"
+    "purescript-integers": "^3.0.0",
+    "purescript-foldable-traversable": "^3.7.1"
   },
   "devDependencies": {
     "purescript-console": "^3.0.0",

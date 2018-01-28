@@ -20,7 +20,7 @@ import DOM.HTML.Event.EventTypes (hashchange)
 import DOM.HTML.Location as L
 import DOM.HTML.Types (windowToEventTarget)
 import DOM.HTML.Window (location)
-import Data.Foldable (class Foldable, find)
+import Data.Foldable (class Foldable, indexl)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String (Pattern(..), stripPrefix)
 import Routing (RoutingEffects, match, matchWith)
@@ -87,5 +87,5 @@ matchesWith parser cb = foldHashes go (go Nothing)
   where
   go a =
     maybe (pure a) (\b -> Just b <$ cb a b)
-      <<< find (const true)
+      <<< indexl 0
       <<< parser
