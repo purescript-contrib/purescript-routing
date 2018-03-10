@@ -36,3 +36,7 @@ class (Alternative f) <= MatchClass f where
   end :: f Unit
 
   fail :: forall a. String -> f a
+
+-- | Matches a leading slash.
+root :: forall f. MatchClass f => f Unit
+root = lit ""
