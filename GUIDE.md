@@ -247,7 +247,8 @@ import MyRoute (myRoute)
 
 The `matches` combinator takes a `Match` parser and an `Eff` callback,
 providing the previously matched route (wrapped in `Maybe` since it may be
-the initial route) and the currently matched route.
+the initial route) and the currently matched route. You might use this
+callback to push an input to an instance of a running application.
 
 ```purescript
 main = do
