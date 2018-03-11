@@ -30,9 +30,8 @@ import DOM.Node.Document (createTextNode) as DOM
 import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
 import DOM.Node.Node (setNodeValue) as DOM
 import DOM.Node.Types (textToNode) as DOM
-import Data.Array (find)
 import Data.Array as Array
-import Data.Foldable (class Foldable, for_, traverse_)
+import Data.Foldable (class Foldable, for_, indexl, traverse_)
 import Data.Foreign (Foreign)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
@@ -114,8 +113,8 @@ makeInterface basename = do
   let
     stateFn op state path = do
       let
-        loc = normalizeLocation basename state path
-        url = DOM.URL $ loc.pathname <> loc.search <> loc.hash
+        loc = normalizeLocation state path
+        url = DOM.URL $ unwrap basename <> loc.pathname <> loc.search <> loc.hash
       DOM.window
         >>= DOM.history
         >>= op state (DOM.DocumentTitle "") url
@@ -142,17 +141,16 @@ type LocationState =
   , hash :: String
   }
 
-normalizeLocation :: Basename -> Foreign -> Path -> LocationState
-normalizeLocation (Basename basename) state (Path path) =
+normalizeLocation :: Foreign -> Path -> LocationState
+normalizeLocation state (Path path) =
   case searchIx, hashIx of
-    Nothing, Nothing   -> { state, pathname: path', hash: "", search: "" }
-    Nothing, Just hix  -> { state, pathname: String.take hix path', search: "", hash: String.drop hix path' }
-    Just six, Nothing  -> { state, pathname: String.take six path', search: String.drop six path', hash: "" }
-    Just six, Just hix -> { state, pathname: String.take hix path', search: String.take (hix - six) (String.drop six path'), hash: String.drop hix path' }
+    Nothing, Nothing   -> { state, pathname: path, hash: "", search: "" }
+    Nothing, Just hix  -> { state, pathname: String.take hix path, search: "", hash: String.drop hix path }
+    Just six, Nothing  -> { state, pathname: String.take six path, search: String.drop six path, hash: "" }
+    Just six, Just hix -> { state, pathname: String.take six path, search: String.take (hix - six) (String.drop six path), hash: String.drop hix path }
   where
-  path' = basename <> path
-  searchIx = String.indexOf (String.Pattern "?") path'
-  hashIx = String.indexOf (String.Pattern "#") path'
+  searchIx = String.indexOf (String.Pattern "?") path
+  hashIx = String.indexOf (String.Pattern "#") path
 
 foldLocations
   :: forall eff a
@@ -165,7 +163,7 @@ foldLocations cb init psi = do
   psi.listen (\loc -> writeRef ref =<< flip cb loc =<< readRef ref)
 
 locations
-  :: forall eff a
+  :: forall eff
    . (Maybe LocationState -> LocationState -> Eff (PushStateEffects eff) Unit)
   -> PushStateInterface (PushStateEffects eff)
   -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
@@ -209,5 +207,5 @@ matchesWith parser cb = foldPaths go (go Nothing)
   where
   go a =
     maybe (pure a) (\b -> Just b <$ cb a b)
-      <<< find (const true)
+      <<< indexl 0
       <<< parser
