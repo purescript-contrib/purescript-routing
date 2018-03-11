@@ -115,10 +115,10 @@ runPushStateTests = withTest \{ assert } -> do
   let
     done = join (readRef doneRef)
     readState r = r { state = hush $ runExcept $ readInt r.state }
-    loc1 = { state: Nothing, pathname: "/", search: "", hash: "" }
-    loc2 = { state: Just 1, pathname: "/a", search: "?a", hash: "" }
-    loc3 = { state: Just 2, pathname: "/b", search: "", hash: "#b" }
-    loc4 = { state: Just 3, pathname: "", search: "", hash: "" }
+    loc1 = { state: Nothing, pathname: "/", search: "", hash: "", path: "/" }
+    loc2 = { state: Just 1, pathname: "/a", search: "?a", hash: "", path: "/a?a" }
+    loc3 = { state: Just 2, pathname: "/b", search: "", hash: "#b", path: "/b#b" }
+    loc4 = { state: Just 3, pathname: "", search: "", hash: "", path: "" }
 
   writeRef doneRef =<< flip locations hist \old new ->
     case readState <$> old, readState new of
