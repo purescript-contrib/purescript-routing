@@ -104,6 +104,12 @@ makeInterface basename = do
       let path = pathname <> search <> hash
       pure { state, pathname, search, hash, path }
 
+  -- The hashchange interface is asynchronous, since hashchange events are
+  -- fired on the next tick of the event loop. We want the push-state
+  -- interface to behave as similarly as possible, so we use the microtask
+  -- queue via MutationObserver to schedule callbacks. Alternatively we could
+  -- just use a setTimeout, but it would not be as prompt. We use a fresh
+  -- counter so that the text change mutation always fires.
   schedule <- do
     obsvNode <-
       DOM.window
