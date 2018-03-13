@@ -24,7 +24,7 @@ import Data.Record as Rec
 import Routing.Hash (RoutingEffects, hashes, setHash)
 import Routing.Match (Match)
 import Routing.Match.Class (lit)
-import Routing.PushState (Basename(..), Path(..), locations, makeInterface)
+import Routing.PushState (locations, makeInterface)
 
 type Effects = RoutingEffects (exception :: EXCEPTION, history :: HISTORY)
 
@@ -110,7 +110,7 @@ runHashTests next = withTest \{ assert } -> do
 
 runPushStateTests :: Eff Effects Unit
 runPushStateTests = withTest \{ assert } -> do
-  hist <- makeInterface (Basename "/test")
+  hist <- makeInterface
   doneRef <- newRef (pure unit)
   let
     done = join (readRef doneRef)
@@ -118,7 +118,7 @@ runPushStateTests = withTest \{ assert } -> do
     loc1 = { state: Nothing, pathname: "/", search: "", hash: "", path: "/" }
     loc2 = { state: Just 1, pathname: "/a", search: "?a", hash: "", path: "/a?a" }
     loc3 = { state: Just 2, pathname: "/b", search: "", hash: "#b", path: "/b#b" }
-    loc4 = { state: Just 3, pathname: "", search: "", hash: "", path: "" }
+    loc4 = { state: Just 3, pathname: "/", search: "", hash: "", path: "/" }
 
   writeRef doneRef =<< flip locations hist \old new ->
     case readState <$> old, readState new of
@@ -128,17 +128,17 @@ runPushStateTests = withTest \{ assert } -> do
       Just old', new'
         | Rec.equal old' loc1 && Rec.equal new' loc2 -> do
           assert "Locations: init -> b" true
-          hist.pushState (toForeign 2) (Path "/b#b")
+          hist.pushState (toForeign 2) "/b#b"
         | Rec.equal old' loc2 && Rec.equal new' loc3 -> do
           assert "Locations: a -> b" true
-          hist.pushState (toForeign 3) (Path "")
+          hist.pushState (toForeign 3) "/"
         | Rec.equal old' loc3 && Rec.equal new' loc4 -> do
           assert "Locations: b -> root" true
           done
       _, _ -> do
         done
         assert "Locations: fail" false
-  hist.pushState (toForeign 1) (Path "/a?a")
+  hist.pushState (toForeign 1) "/a?a"
 
 main :: Eff Effects Unit
 main =

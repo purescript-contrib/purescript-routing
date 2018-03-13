@@ -2,8 +2,6 @@ module Routing.PushState
   ( PushStateEffects
   , PushStateInterface
   , LocationState
-  , Basename(..)
-  , Path(..)
   , makeInterface
   , foldLocations
   , locations
@@ -33,9 +31,8 @@ import DOM.Node.Types (textToNode) as DOM
 import Data.Array as Array
 import Data.Foldable (class Foldable, for_, indexl, traverse_)
 import Data.Foreign (Foreign)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
-import Data.Newtype (class Newtype, unwrap)
-import Data.StrMap as StrMap
+import Data.Map as Map
+import Data.Maybe (Maybe(..), maybe)
 import Data.String as String
 import Routing (match)
 import Routing.Match (Match)
@@ -46,18 +43,6 @@ type PushStateEffects eff =
   , ref :: REF
   | eff
   )
-
-newtype Basename = Basename String
-
-derive newtype instance eqBasename :: Eq Basename
-derive newtype instance ordBasename :: Ord Basename
-derive instance newtypeBasename :: Newtype Basename _
-
-newtype Path = Path String
-
-derive newtype instance eqPath :: Eq Path
-derive newtype instance ordPath :: Ord Path
-derive instance newtypePath :: Newtype Path _
 
 -- | A `PushStateInterface` is a localized instance for making location changes
 -- | and consuming the events. Since the DOM API does not provide a general
@@ -70,20 +55,21 @@ derive instance newtypePath :: Newtype Path _
 -- | * `listen` – Subscribes to location changes (both push and pop). Returns
 -- |   an effect which removes the listener.
 type PushStateInterface eff =
-  { pushState :: Foreign -> Path -> Eff eff Unit
-  , replaceState :: Foreign -> Path -> Eff eff Unit
+  { pushState :: Foreign -> String -> Eff eff Unit
+  , replaceState :: Foreign -> String -> Eff eff Unit
   , locationState :: Eff eff LocationState
   , listen :: (LocationState -> Eff eff Unit) -> Eff eff (Eff eff Unit)
   }
 
--- | Creates a new `PushStateInterface` given a `Basename`. The `Basename` is
--- | used as an implicit prefix for the paths supplied to the instance, being
--- | automatically added and stripped as necessary.
-makeInterface :: forall eff. Basename -> Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
-makeInterface basename = do
+-- | Creates a new `PushStateInterface`. Generally you should only create one
+-- | instance for your application. Since the DOM does not provide general
+-- | events for location changes, listeners will only be notified on push when
+-- | using the paired functions.
+makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
+makeInterface = do
   argsRef <- newRef []
   freshRef <- newRef 0
-  listenersRef <- newRef StrMap.empty
+  listenersRef <- newRef Map.empty
 
   let
     notify ev =
@@ -92,13 +78,13 @@ makeInterface basename = do
     listen k = do
       fresh <- readRef freshRef
       writeRef freshRef (fresh + 1)
-      modifyRef listenersRef $ StrMap.insert (show fresh) k
-      pure $ modifyRef listenersRef $ StrMap.delete (show fresh)
+      modifyRef listenersRef $ Map.insert fresh k
+      pure $ modifyRef listenersRef $ Map.delete fresh
 
     locationState = do
       loc <- DOM.window >>= DOM.location
       state <- DOM.window >>= DOM.history >>= DOM.state
-      pathname <- fromMaybe <*> String.stripPrefix (String.Pattern (unwrap basename)) <$> DOM.pathname loc
+      pathname <- DOM.pathname loc
       search <- DOM.search loc
       hash <- DOM.hash loc
       let path = pathname <> search <> hash
@@ -132,9 +118,17 @@ makeInterface basename = do
 
   let
     stateFn op state path = do
+      old <- locationState
       let
-        loc = normalizeLocation state path
-        url = DOM.URL $ unwrap basename <> loc.pathname <> loc.search <> loc.hash
+        firstNew = String.charAt 0 path
+        lastOld = String.charAt (String.length old.pathname - 1) old.pathname
+        path' = case lastOld, firstNew of
+          _, Just '/' -> path
+          _, Nothing -> old.path
+          Just '/', Just _ -> old.pathname <> path
+          _, Just _ -> old.pathname <> "/" <> path
+        loc = makeLocationState state path'
+        url = DOM.URL $ loc.pathname <> loc.search <> loc.hash
       DOM.window
         >>= DOM.history
         >>= op state (DOM.DocumentTitle "") url
@@ -162,13 +156,37 @@ type LocationState =
   , hash :: String
   }
 
-normalizeLocation :: Foreign -> Path -> LocationState
-normalizeLocation state (Path path) =
+makeLocationState :: Foreign -> String -> LocationState
+makeLocationState state path =
   case searchIx, hashIx of
-    Nothing, Nothing   -> { state, pathname: path, hash: "", search: "", path }
-    Nothing, Just hix  -> { state, pathname: String.take hix path, search: "", hash: String.drop hix path, path }
-    Just six, Nothing  -> { state, pathname: String.take six path, search: String.drop six path, hash: "", path }
-    Just six, Just hix -> { state, pathname: String.take six path, search: String.take (hix - six) (String.drop six path), hash: String.drop hix path, path }
+    Nothing, Nothing ->
+      { state
+      , path
+      , pathname: path
+      , hash: ""
+      , search: ""
+      }
+    Nothing, Just hix ->
+      { state
+      , path
+      , pathname: String.take hix path
+      , search: ""
+      , hash: String.drop hix path
+      }
+    Just six, Nothing  ->
+      { state
+      , path
+      , pathname: String.take six path
+      , search: String.drop six path
+      , hash: ""
+      }
+    Just six, Just hix ->
+      { state
+      , path
+      , pathname: String.take six path
+      , search: String.take (hix - six) (String.drop six path)
+      , hash: String.drop hix path
+      }
   where
   searchIx = String.indexOf (String.Pattern "?") path
   hashIx = String.indexOf (String.Pattern "#") path
