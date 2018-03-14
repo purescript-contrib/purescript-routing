@@ -120,13 +120,13 @@ makeInterface = do
     stateFn op state path = do
       old <- locationState
       let
-        firstNew = String.charAt 0 path
-        lastOld = String.charAt (String.length old.pathname - 1) old.pathname
+        firstNew = String.take 1 path
+        lastOld = String.takeRight 1 old.pathname
         path' = case lastOld, firstNew of
-          _, Just '/' -> path
-          _, Nothing -> old.path
-          Just '/', Just _ -> old.pathname <> path
-          _, Just _ -> old.pathname <> "/" <> path
+          _,   "/" -> path
+          _,   ""  -> old.path
+          "/", _   -> old.pathname <> path
+          _,   _   -> old.pathname <> "/" <> path
         loc = makeLocationState state path'
         url = DOM.URL $ loc.pathname <> loc.search <> loc.hash
       DOM.window
