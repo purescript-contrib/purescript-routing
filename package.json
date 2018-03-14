@@ -10,10 +10,8 @@
   "devDependencies": {
     "node-static": "^0.7.10",
     "pulp": "^11.0.0",
+    "purescript": "^0.11.7",
     "purescript-psa": "^0.5.0",
     "rimraf": "^2.5.4"
-  },
-  "dependencies": {
-    "purescript": "^0.11.7"
   }
 }
