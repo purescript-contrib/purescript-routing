@@ -13,9 +13,8 @@ module Routing.PushState
 
 import Prelude
 
-import Control.Monad.Eff (Eff, runPure)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Ref (REF, modifyRef, newRef, readRef, writeRef)
-import Control.Monad.Eff.Ref.Unsafe (unsafeRunRef)
 import DOM (DOM)
 import DOM.Event.EventTarget (addEventListener, eventListener) as DOM
 import DOM.HTML (window) as DOM
@@ -29,9 +28,9 @@ import DOM.Node.Document (createTextNode) as DOM
 import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
 import DOM.Node.Node (setNodeValue) as DOM
 import DOM.Node.Types (textToNode) as DOM
-import Data.Foldable (class Foldable, indexl, sequence_, traverse_)
+import Data.Either (Either(..), either)
+import Data.Foldable (class Foldable, indexl, traverse_)
 import Data.Foreign (Foreign)
-import Data.List (List(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Routing (match)
@@ -75,7 +74,6 @@ type LocationState =
 -- | using the paired functions.
 makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
 makeInterface = do
-  schedRef <- newRef false
   freshRef <- newRef 0
   listenersRef <- newRef Map.empty
 
@@ -97,7 +95,8 @@ makeInterface = do
       hash <- DOM.hash loc
       let path = pathname <> search <> hash
       pure { state, pathname, search, hash, path }
-
+  
+  schedule <- makeImmediate $ notify =<< locationState
   let
     stateFn op state path = do
       DOM.window
@@ -108,11 +107,7 @@ makeInterface = do
       -- interface to behave as similarly as possible, so we use something like
       -- `setImmediate` and use `Ref Boolean` to make sure maximum one `notify` is
       -- scheduled per event loop.
-      unlessM (readRef schedRef) do
-        writeRef schedRef true
-        unsafeSetImmediate $ do
-          writeRef schedRef false
-          notify =<< locationState
+      schedule
 
     listener =
       DOM.eventListener \_ -> notify =<< locationState
@@ -204,34 +199,23 @@ matchesWith parser cb = foldPaths go (go Nothing)
 -- | Similar to `setImmediate`, it's impelemnted using microtask queue via MutationObserver
 -- | to schedule callbacks. this way it's more imediate then `setTimout` would have been.
 -- | We use a fresh counter so that the text change mutation always fires.
--- |
--- | NOTE: it's not that unsafe, but we use `unsafeRunRef` and `runPure` so it's still unsafe.
-unsafeSetImmediate
-  :: forall r
-  . Eff (ref :: REF, dom :: DOM |r) Unit -> Eff (ref :: REF, dom :: DOM |r) Unit
-unsafeSetImmediate =
-  let
-    freshRef = runPure $ unsafeRunRef $ newRef 0
-    effRef = runPure $ unsafeRunRef $ newRef Nil
-    nodeRef = runPure $ unsafeRunRef $ newRef Nothing
-  in \eff -> do
-    modifyRef effRef $ Cons eff
-    obsvNode <- readRef nodeRef >>= case _ of
-      Nothing -> do
-        obsvNode <-
-          DOM.window
-            >>= DOM.document
-            >>> map DOM.htmlDocumentToDocument
-            >>= DOM.createTextNode ""
-            >>> map DOM.textToNode
-        observer <- DOM.mutationObserver \_ _ -> do
-          readRef effRef >>= sequence_
-          writeRef effRef Nil
-        DOM.observe obsvNode { characterData: true } observer
-        pure obsvNode
-      Just obsvNode ->
-        pure obsvNode
-    fresh ← readRef freshRef
-    writeRef freshRef (fresh + 1)
-    DOM.setNodeValue (show fresh) obsvNode
-
+-- | from: https://github.com/natefaubion/purescript-spork/blob/3b56c4d36e84866ed9b1bc27afa7ab4762ffdd01/src/Spork/Scheduler.purs#L20
+makeImmediate
+  ∷ ∀ eff
+  . Eff (ref ∷ REF, dom ∷ DOM | eff) Unit
+  → Eff (ref ∷ REF, dom ∷ DOM | eff) (Eff (ref ∷ REF, dom ∷ DOM | eff) Unit)
+makeImmediate run = do
+  document ←
+    DOM.window
+      >>= DOM.document
+      >>> map DOM.htmlDocumentToDocument
+  nextTick ← newRef (Right 0)
+  obsvNode ← DOM.textToNode <$> DOM.createTextNode "" document
+  observer ← DOM.mutationObserver \_ _ → do
+    modifyRef nextTick $ either (Right <<< add 1) Right
+    run
+  DOM.observe obsvNode { characterData: true } observer
+  pure do
+    readRef nextTick >>= traverse_ \tick → do
+      writeRef nextTick $ Left (tick + 1)
+      DOM.setNodeValue (show tick) obsvNode
