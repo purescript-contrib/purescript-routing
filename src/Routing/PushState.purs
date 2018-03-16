@@ -13,8 +13,9 @@ module Routing.PushState
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
+import Control.Monad.Eff (Eff, runPure)
 import Control.Monad.Eff.Ref (REF, modifyRef, newRef, readRef, writeRef)
+import Control.Monad.Eff.Ref.Unsafe (unsafeRunRef)
 import DOM (DOM)
 import DOM.Event.EventTarget (addEventListener, eventListener) as DOM
 import DOM.HTML (window) as DOM
@@ -28,8 +29,9 @@ import DOM.Node.Document (createTextNode) as DOM
 import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
 import DOM.Node.Node (setNodeValue) as DOM
 import DOM.Node.Types (textToNode) as DOM
-import Data.Foldable (class Foldable, indexl, traverse_)
+import Data.Foldable (class Foldable, indexl, sequence_, traverse_)
 import Data.Foreign (Foreign)
+import Data.List (List(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
 import Routing (match)
@@ -73,7 +75,6 @@ type LocationState =
 -- | using the paired functions.
 makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
 makeInterface = do
-  schedRef <- newRef false
   freshRef <- newRef 0
   listenersRef <- newRef Map.empty
 
@@ -96,35 +97,18 @@ makeInterface = do
       let path = pathname <> search <> hash
       pure { state, pathname, search, hash, path }
 
-  -- The hashchange interface is asynchronous, since hashchange events are
-  -- fired on the next tick of the event loop. We want the push-state
-  -- interface to behave as similarly as possible, so we use the microtask
-  -- queue via MutationObserver to schedule callbacks. Alternatively we could
-  -- just use a setTimeout, but it would not be as prompt. We use a fresh
-  -- counter so that the text change mutation always fires.
-  schedule <- do
-    obsvNode <-
-      DOM.window
-        >>= DOM.document
-        >>> map DOM.htmlDocumentToDocument
-        >>= DOM.createTextNode ""
-        >>> map DOM.textToNode
-    observer <- DOM.mutationObserver \_ _ -> do
-      writeRef schedRef false
-      notify =<< locationState
-    DOM.observe obsvNode { characterData: true } observer
-    pure $ unlessM (readRef schedRef) do
-      writeRef schedRef true
-      fresh ← readRef freshRef
-      writeRef freshRef (fresh + 1)
-      DOM.setNodeValue (show fresh) obsvNode
-
   let
     stateFn op state path = do
       DOM.window
         >>= DOM.history
         >>= op state (DOM.DocumentTitle "") (DOM.URL path)
-      schedule
+      -- The hashchange interface is asynchronous, since hashchange events are
+      -- fired on the next tick of the event loop. We want the push-state
+      -- interface to behave as similarly as possible, so we use the microtask
+      -- queue via MutationObserver to schedule callbacks. Alternatively we could
+      -- just use a setTimeout, but it would not be as prompt. We use a fresh
+      -- counter so that the text change mutation always fires.
+      unsafeSetImmediate $ notify =<< locationState
 
     listener =
       DOM.eventListener \_ -> notify =<< locationState
@@ -212,3 +196,34 @@ matchesWith parser cb = foldPaths go (go Nothing)
     maybe (pure a) (\b -> Just b <$ cb a b)
       <<< indexl 0
       <<< parser
+
+-- It's not that unsafe actually, but we use unsafeRunRef so it's still unsafe.
+unsafeSetImmediate
+  :: forall r
+  . Eff (ref :: REF, dom :: DOM |r) Unit -> Eff (ref :: REF, dom :: DOM |r) Unit
+unsafeSetImmediate =
+  let
+    freshRef = runPure $ unsafeRunRef $ newRef 0
+    effRef = runPure $ unsafeRunRef $ newRef Nil
+    nodeRef = runPure $ unsafeRunRef $ newRef Nothing
+  in \eff -> do
+    modifyRef effRef $ Cons eff
+    obsvNode <- readRef nodeRef >>= case _ of
+      Nothing -> do
+        obsvNode <-
+          DOM.window
+            >>= DOM.document
+            >>> map DOM.htmlDocumentToDocument
+            >>= DOM.createTextNode ""
+            >>> map DOM.textToNode
+        observer <- DOM.mutationObserver \_ _ -> do
+          readRef effRef >>= sequence_
+          writeRef effRef Nil
+        DOM.observe obsvNode { characterData: true } observer
+        pure obsvNode
+      Just obsvNode ->
+        pure obsvNode
+    fresh ← readRef freshRef
+    writeRef freshRef (fresh + 1)
+    DOM.setNodeValue (show fresh) obsvNode
+
