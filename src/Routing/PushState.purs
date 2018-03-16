@@ -75,6 +75,7 @@ type LocationState =
 -- | using the paired functions.
 makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
 makeInterface = do
+  schedRef <- newRef false
   freshRef <- newRef 0
   listenersRef <- newRef Map.empty
 
@@ -104,11 +105,14 @@ makeInterface = do
         >>= op state (DOM.DocumentTitle "") (DOM.URL path)
       -- The hashchange interface is asynchronous, since hashchange events are
       -- fired on the next tick of the event loop. We want the push-state
-      -- interface to behave as similarly as possible, so we use the microtask
-      -- queue via MutationObserver to schedule callbacks. Alternatively we could
-      -- just use a setTimeout, but it would not be as prompt. We use a fresh
-      -- counter so that the text change mutation always fires.
-      unsafeSetImmediate $ notify =<< locationState
+      -- interface to behave as similarly as possible, so we use something like
+      -- `setImmediate` and use `Ref Boolean` to make sure maximum one `notify` is
+      -- scheduled per event loop.
+      unlessM (readRef schedRef) do
+        writeRef schedRef true
+        unsafeSetImmediate $ do
+          writeRef schedRef false
+          notify =<< locationState
 
     listener =
       DOM.eventListener \_ -> notify =<< locationState
@@ -197,7 +201,11 @@ matchesWith parser cb = foldPaths go (go Nothing)
       <<< indexl 0
       <<< parser
 
--- It's not that unsafe actually, but we use unsafeRunRef so it's still unsafe.
+-- | Similar to `setImmediate`, it's impelemnted using microtask queue via MutationObserver
+-- | to schedule callbacks. this way it's more imediate then `setTimout` would have been.
+-- | We use a fresh counter so that the text change mutation always fires.
+-- |
+-- | NOTE: it's not that unsafe, but we use `unsafeRunRef` and `runPure` so it's still unsafe.
 unsafeSetImmediate
   :: forall r
   . Eff (ref :: REF, dom :: DOM |r) Unit -> Eff (ref :: REF, dom :: DOM |r) Unit
