@@ -95,18 +95,17 @@ makeInterface = do
       hash <- DOM.hash loc
       let path = pathname <> search <> hash
       pure { state, pathname, search, hash, path }
-  
+
+  -- The hashchange interface is asynchronous, since hashchange events are
+  -- fired on the next tick of the event loop. We want the push-state
+  -- interface to behave as similarly as possible, so we use `makeImmediate`
+  -- which will execute `notify` maximum once per event loop.
   schedule <- makeImmediate $ notify =<< locationState
   let
     stateFn op state path = do
       DOM.window
         >>= DOM.history
         >>= op state (DOM.DocumentTitle "") (DOM.URL path)
-      -- The hashchange interface is asynchronous, since hashchange events are
-      -- fired on the next tick of the event loop. We want the push-state
-      -- interface to behave as similarly as possible, so we use something like
-      -- `setImmediate` and use `Ref Boolean` to make sure maximum one `notify` is
-      -- scheduled per event loop.
       schedule
 
     listener =
@@ -196,8 +195,8 @@ matchesWith parser cb = foldPaths go (go Nothing)
       <<< indexl 0
       <<< parser
 
--- | Similar to `setImmediate`, it's impelemnted using microtask queue via MutationObserver
--- | to schedule callbacks. this way it's more imediate then `setTimout` would have been.
+-- | Similar to `setImmediate`, it's implemented using microtask queue via MutationObserver
+-- | to schedule callbacks. This way it's more immediate than `setTimout` would have been.
 -- | We use a fresh counter so that the text change mutation always fires.
 -- | from: https://github.com/natefaubion/purescript-spork/blob/3b56c4d36e84866ed9b1bc27afa7ab4762ffdd01/src/Spork/Scheduler.purs#L20
 makeImmediate
