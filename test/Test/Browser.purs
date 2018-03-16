@@ -118,23 +118,33 @@ runPushStateTests = withTest \{ assert } -> do
     loc1 = { state: Nothing, pathname: "/", search: "", hash: "", path: "/" }
     loc2 = { state: Just 1, pathname: "/a", search: "?a", hash: "", path: "/a?a" }
     loc3 = { state: Just 2, pathname: "/b", search: "", hash: "#b", path: "/b#b" }
-    loc4 = { state: Just 3, pathname: "/", search: "", hash: "", path: "/" }
+    loc4 = { state: Just 3, pathname: "/c/d", search: "", hash: "", path: "/c/d" }
+    loc5 = { state: Just 4, pathname: "/c/e", search: "", hash: "", path: "/c/e" }
+    loc6 = { state: Just 5, pathname: "/c/e", search: "?f", hash: "", path: "/c/e?f" }
+    loc7 = { state: Just 6, pathname: "/", search: "", hash: "", path: "/" }
 
   writeRef doneRef =<< flip locations hist \old new ->
     case readState <$> old, readState new of
       Nothing, new'
         | Rec.equal new' loc1 -> do
-          assert "Locations: Initial" true
+            assert "Locations: Initial" true
       Just old', new'
         | Rec.equal old' loc1 && Rec.equal new' loc2 -> do
-          assert "Locations: init -> b" true
-          hist.pushState (toForeign 2) "/b#b"
+            assert "Locations: init -> a" true
+            hist.pushState (toForeign 2) "/b#b"
         | Rec.equal old' loc2 && Rec.equal new' loc3 -> do
-          assert "Locations: a -> b" true
-          hist.pushState (toForeign 3) "/"
+            assert "Locations: a -> b" true
+            hist.pushState (toForeign 3) "/c/d"
         | Rec.equal old' loc3 && Rec.equal new' loc4 -> do
-          assert "Locations: b -> root" true
-          done
+            assert "Locations: b -> c/d" true
+            hist.pushState (toForeign 4) "e"
+        | Rec.equal old' loc4 && Rec.equal new' loc5 -> do
+            assert "Locations: c/d -> c/e" true
+            hist.pushState (toForeign 5) "?f"
+        | Rec.equal old' loc5 && Rec.equal new' loc6 -> do
+            assert "Locations: c/e -> c/e?f" true
+            hist.pushState (toForeign 6) "/"
+            done
       _, _ -> do
         done
         assert "Locations: fail" false

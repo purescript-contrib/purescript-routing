@@ -28,12 +28,10 @@ import DOM.Node.Document (createTextNode) as DOM
 import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
 import DOM.Node.Node (setNodeValue) as DOM
 import DOM.Node.Types (textToNode) as DOM
-import Data.Array as Array
-import Data.Foldable (class Foldable, for_, indexl, traverse_)
+import Data.Foldable (class Foldable, indexl, traverse_)
 import Data.Foreign (Foreign)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
-import Data.String as String
 import Routing (match)
 import Routing.Match (Match)
 
@@ -61,13 +59,21 @@ type PushStateInterface eff =
   , listen :: (LocationState -> Eff eff Unit) -> Eff eff (Eff eff Unit)
   }
 
+type LocationState =
+  { state :: Foreign
+  , path :: String
+  , pathname :: String
+  , search :: String
+  , hash :: String
+  }
+
 -- | Creates a new `PushStateInterface`. Generally you should only create one
 -- | instance for your application. Since the DOM does not provide general
 -- | events for location changes, listeners will only be notified on push when
 -- | using the paired functions.
 makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
 makeInterface = do
-  argsRef <- newRef []
+  schedRef <- newRef false
   freshRef <- newRef 0
   listenersRef <- newRef Map.empty
 
@@ -104,35 +110,21 @@ makeInterface = do
         >>= DOM.createTextNode ""
         >>> map DOM.textToNode
     observer <- DOM.mutationObserver \_ _ -> do
-      argsQueue <- readRef argsRef
-      writeRef argsRef []
-      for_ argsQueue notify
+      writeRef schedRef false
+      notify =<< locationState
     DOM.observe obsvNode { characterData: true } observer
-    pure \args -> do
-      argsQueue <- readRef argsRef
-      writeRef argsRef (Array.snoc argsQueue args)
-      when (Array.null argsQueue) do
-        fresh ← readRef freshRef
-        writeRef freshRef (fresh + 1)
-        DOM.setNodeValue (show fresh) obsvNode
+    pure $ unlessM (readRef schedRef) do
+      writeRef schedRef true
+      fresh ← readRef freshRef
+      writeRef freshRef (fresh + 1)
+      DOM.setNodeValue (show fresh) obsvNode
 
   let
     stateFn op state path = do
-      old <- locationState
-      let
-        firstNew = String.take 1 path
-        lastOld = String.takeRight 1 old.pathname
-        path' = case lastOld, firstNew of
-          _,   "/" -> path
-          _,   ""  -> old.path
-          "/", _   -> old.pathname <> path
-          _,   _   -> old.pathname <> "/" <> path
-        loc = makeLocationState state path'
-        url = DOM.URL $ loc.pathname <> loc.search <> loc.hash
       DOM.window
         >>= DOM.history
-        >>= op state (DOM.DocumentTitle "") url
-      schedule loc
+        >>= op state (DOM.DocumentTitle "") (DOM.URL path)
+      schedule
 
     listener =
       DOM.eventListener \_ -> notify =<< locationState
@@ -147,49 +139,6 @@ makeInterface = do
     , locationState
     , listen
     }
-
-type LocationState =
-  { state :: Foreign
-  , path :: String
-  , pathname :: String
-  , search :: String
-  , hash :: String
-  }
-
-makeLocationState :: Foreign -> String -> LocationState
-makeLocationState state path =
-  case searchIx, hashIx of
-    Nothing, Nothing ->
-      { state
-      , path
-      , pathname: path
-      , hash: ""
-      , search: ""
-      }
-    Nothing, Just hix ->
-      { state
-      , path
-      , pathname: String.take hix path
-      , search: ""
-      , hash: String.drop hix path
-      }
-    Just six, Nothing  ->
-      { state
-      , path
-      , pathname: String.take six path
-      , search: String.drop six path
-      , hash: ""
-      }
-    Just six, Just hix ->
-      { state
-      , path
-      , pathname: String.take six path
-      , search: String.take (hix - six) (String.drop six path)
-      , hash: String.drop hix path
-      }
-  where
-  searchIx = String.indexOf (String.Pattern "?") path
-  hashIx = String.indexOf (String.Pattern "#") path
 
 -- | Folds effectfully over location changes given callbacks for handling
 -- | changes and the initial location. Returns an effect which removes the
