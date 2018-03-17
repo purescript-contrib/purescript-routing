@@ -28,6 +28,7 @@ import DOM.Node.Document (createTextNode) as DOM
 import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
 import DOM.Node.Node (setNodeValue) as DOM
 import DOM.Node.Types (textToNode) as DOM
+import Data.Either (Either(..), either)
 import Data.Foldable (class Foldable, indexl, traverse_)
 import Data.Foreign (Foreign)
 import Data.Map as Map
@@ -73,7 +74,6 @@ type LocationState =
 -- | using the paired functions.
 makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
 makeInterface = do
-  schedRef <- newRef false
   freshRef <- newRef 0
   listenersRef <- newRef Map.empty
 
@@ -98,27 +98,9 @@ makeInterface = do
 
   -- The hashchange interface is asynchronous, since hashchange events are
   -- fired on the next tick of the event loop. We want the push-state
-  -- interface to behave as similarly as possible, so we use the microtask
-  -- queue via MutationObserver to schedule callbacks. Alternatively we could
-  -- just use a setTimeout, but it would not be as prompt. We use a fresh
-  -- counter so that the text change mutation always fires.
-  schedule <- do
-    obsvNode <-
-      DOM.window
-        >>= DOM.document
-        >>> map DOM.htmlDocumentToDocument
-        >>= DOM.createTextNode ""
-        >>> map DOM.textToNode
-    observer <- DOM.mutationObserver \_ _ -> do
-      writeRef schedRef false
-      notify =<< locationState
-    DOM.observe obsvNode { characterData: true } observer
-    pure $ unlessM (readRef schedRef) do
-      writeRef schedRef true
-      fresh ← readRef freshRef
-      writeRef freshRef (fresh + 1)
-      DOM.setNodeValue (show fresh) obsvNode
-
+  -- interface to behave as similarly as possible, so we use `makeImmediate`
+  -- which will execute `notify` maximum once per event loop.
+  schedule <- makeImmediate $ notify =<< locationState
   let
     stateFn op state path = do
       DOM.window
@@ -212,3 +194,27 @@ matchesWith parser cb = foldPaths go (go Nothing)
     maybe (pure a) (\b -> Just b <$ cb a b)
       <<< indexl 0
       <<< parser
+
+-- | Similar to `setImmediate`, it's implemented using microtask queue via MutationObserver
+-- | to schedule callbacks. This way it's more immediate than `setTimout` would have been.
+-- | We use a fresh counter so that the text change mutation always fires.
+-- | from: https://github.com/natefaubion/purescript-spork/blob/3b56c4d36e84866ed9b1bc27afa7ab4762ffdd01/src/Spork/Scheduler.purs#L20
+makeImmediate
+  ∷ ∀ eff
+  . Eff (ref ∷ REF, dom ∷ DOM | eff) Unit
+  → Eff (ref ∷ REF, dom ∷ DOM | eff) (Eff (ref ∷ REF, dom ∷ DOM | eff) Unit)
+makeImmediate run = do
+  document ←
+    DOM.window
+      >>= DOM.document
+      >>> map DOM.htmlDocumentToDocument
+  nextTick ← newRef (Right 0)
+  obsvNode ← DOM.textToNode <$> DOM.createTextNode "" document
+  observer ← DOM.mutationObserver \_ _ → do
+    modifyRef nextTick $ either (Right <<< add 1) Right
+    run
+  DOM.observe obsvNode { characterData: true } observer
+  pure do
+    readRef nextTick >>= traverse_ \tick → do
+      writeRef nextTick $ Left (tick + 1)
+      DOM.setNodeValue (show tick) obsvNode
