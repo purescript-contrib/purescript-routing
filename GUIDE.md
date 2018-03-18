@@ -3,7 +3,7 @@
 `purescript-routing` consists of two core features
 
 * An `Applicative` parsing framework for paths (`Routing.Match`)
-* Routing events (`Routing.Hash`)
+* Routing effects and events (`Routing.Hash` or `Routing.PushState`)
 
 ## Parsing routes with `Routing.Match`
 
@@ -234,7 +234,7 @@ test3 = matchMyRoute "/posts/12/edit"
 test4 = matchMyRoute "/psots/bad"
 ```
 
-## Responding to events with `Routing.Hash`
+## Routing events with `Routing.Hash`
 
 Now that we have a parser, we'll want to respond to events and fire a
 callback like in our original example. `purescript-routing` supports
@@ -279,3 +279,60 @@ main = do
 ```
 
 Alternatively, we could explicitly add a `NotFound` constructor to `MyRoute`.
+
+## Routing events with `Routing.PushState`
+
+Routing with `Routing.PushState` is similar to hash-based routing except that
+we must first create an interface. Browsers don't handle location events
+directly, so the interface needs to do some bookkeeping of it's own for
+handling subscriptions.
+
+```purescript
+import Routing.PushState (makeInterface, matches)
+import MyRoute (myRoute)
+```
+
+```purescript
+main = do
+  nav <- makeInterface
+  nav # matches myRoute \_ newRoute -> case newRoute of
+    PostIndex -> ...
+    Post postId -> ...
+    PostEdit postId -> ...
+    PostBrowse year month -> ...
+```
+
+Use the created interface to push new states and routes. States are always
+`Foreign` because they are global and may come from anywhere. We cannot
+provide a well-typed interface with any guarantees.
+
+```purescript
+import Data.Foreign (toForeign)
+
+main = do
+  nav <- makeInterface
+  ...
+  nav.pushState (toForeign {}) "/about"
+```
+
+One option is to use `purescript-simple-json` which provides easy codecs to
+and from `Foreign` for JSON-like data.
+
+```purescript
+import Simple.JSON (read, write)
+
+type MyState =
+  { foo :: String
+  , bar :: Int
+  }
+
+main = do
+  nav <- makeInterface
+  _   <- nav.listen listener
+  nav.pushState (write { foo: "foo", bar: 42 }) "/about"
+
+  where
+  listener location = case read location.state of
+    Right { foo, bar } -> ...
+    Left errors -> ...
+```
