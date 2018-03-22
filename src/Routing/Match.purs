@@ -1,4 +1,7 @@
-module Routing.Match where
+module Routing.Match
+  ( module Routing.Match
+  , module Routing.Match.Class
+  ) where
 
 import Prelude
 
@@ -18,7 +21,7 @@ import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
 import Data.Validation.Semiring (V, invalid, unV)
 import Global (readFloat, isNaN)
-import Routing.Match.Class (class MatchClass, str)
+import Routing.Match.Class (class MatchClass, bool, end, fail, int, lit, num, param, params, root, str)
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
 

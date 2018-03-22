@@ -17,8 +17,7 @@ import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafePartial)
 import Routing (match)
-import Routing.Match (Match, list, nonempty)
-import Routing.Match.Class (bool, end, int, lit, num, str, param, params)
+import Routing.Match (Match, bool, end, int, list, lit, nonempty, num, param, params, str)
 import Test.Assert (ASSERT, assertEqual)
 
 data MyRoutes
