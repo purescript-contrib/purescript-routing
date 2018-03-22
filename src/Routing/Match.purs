@@ -5,21 +5,20 @@ import Prelude
 import Control.Alt (class Alt, (<|>))
 import Control.Alternative (class Alternative)
 import Control.Plus (class Plus)
-
 import Data.Either (Either(..))
 import Data.Foldable (foldl)
 import Data.Int (fromString)
 import Data.List (List(..), reverse)
 import Data.Map as M
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Semiring.Free (Free, free)
+import Data.String.NonEmpty (NonEmptyString)
+import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
 import Data.Validation.Semiring (V, invalid, unV)
-
 import Global (readFloat, isNaN)
-
-import Routing.Match.Class (class MatchClass)
+import Routing.Match.Class (class MatchClass, str)
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
 
@@ -125,6 +124,11 @@ instance matchApply :: Apply Match where
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
 
+-- | Matches a non-empty string.
+nonempty :: Match NonEmptyString
+nonempty =
+  eitherMatch $ maybe (Left "Empty string") Right <<< NES.fromString <$> str
+
 -- | Matches list of matchers. Useful when argument can easy fail (not `str`)
 -- | returns `Match Nil` if no matches
 list :: forall a. Match a -> Match (List a)
@@ -136,9 +140,6 @@ list (Match r2a) =
           (const $ pure (Tuple r (reverse accum)))
           (\(Tuple rs a) -> go (Cons a accum) rs)
           (r2a r)
-
-
-
 
 -- It groups `Free MatchError` -> [[MatchError]] -map with showMatchError ->
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String
