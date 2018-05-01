@@ -83,7 +83,7 @@ no interesting values we want to consume, we can use `<$` from `Prelude`.
 ```purescript
 postIndex :: Match MyRoute
 postIndex =
-  PostIndex <$ lit "posts
+  PostIndex <$ (lit "posts")
 ```
 
 Our next routes require extracting an integer `PostId`.
@@ -91,11 +91,11 @@ Our next routes require extracting an integer `PostId`.
 ```purescript
 post :: Match MyRoute
 post =
-  Post <$> lit "posts" *> int
+  Post <$> (lit "posts" *> int)
 
 postEdit :: Match MyRoute
 postEdit =
-  PostEdit <$> lit "posts" *> int <* lit "edit"
+  PostEdit <$> (lit "posts" *> int <* lit "edit")
 ```
 
 Note the use of the `*>` and `<*` operators. These let us direct the focus of
@@ -108,7 +108,7 @@ And now finally, we need to extract multiple segments for `PostBrowse`.
 ```purescript
 postBrowse :: Match MyRoute
 postBrowse =
-  PostBrowse <$> lit "posts" *> str <*> str
+  PostBrowse <$> (lit "posts" *> str) <*> str
 ```
 
 The `<*>` combinator has arrows on both sides because we want both values.
@@ -145,9 +145,9 @@ We can also go ahead and inline our parsers.
 myRoute :: Match MyRoute
 myRoute = oneOf
   [ PostIndex <$ lit "posts"
-  , Post <$> lit "posts" *> int
-  , PostEdit <$> lit "posts" *> int <* lit "edit"
-  , PostBrowse <$> lit "posts" *> str <*> str
+  , Post <$> (lit "posts" *> int)
+  , PostEdit <$> (lit "posts" *> int <* lit "edit")
+  , PostBrowse <$> (lit "posts" *> str) <*> str
   ]
 ```
 
@@ -335,4 +335,37 @@ main = do
   listener location = case read location.state of
     Right { foo, bar } -> ...
     Left errors -> ...
+```
+
+## Using `newtype` in routes
+
+Using the following routes with a `newtype`:
+```purescript
+newtype PostId = PostID Int
+derive instance newtypePostID :: Newtype PostId _
+
+data MyRoute
+  = PostIndex
+  | Post PostId
+  | PostEdit PostId
+  | PostBrowse String String
+```
+
+It is possible to warp an `int` route parameter into a `PostId` using the
+following function:
+```purescript
+postId :: forall f. MatchClass f => f PostId
+postId = pure wrap <*> int
+```
+
+The created `postId` function can then be used like the `str` function.
+```purescript
+myRoute :: Match MyRoute
+myRoute =
+  root *> lit "posts" *> oneOf
+    [ PostEdit <$> postId <* lit "edit"
+    , Post <$> postId
+    , PostBrowse <$> str <*> str
+    , pure PostIndex
+    ] <* end
 ```
