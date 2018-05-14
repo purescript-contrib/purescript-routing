@@ -1,7 +1,4 @@
-module Routing.Match
-  ( module Routing.Match
-  , module Routing.Match.Class
-  ) where
+module Routing.Match where
 
 import Prelude
 
@@ -21,7 +18,6 @@ import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
 import Data.Validation.Semiring (V, invalid, unV)
 import Global (readFloat, isNaN)
-import Routing.Match.Class (class MatchClass, bool, end, fail, int, lit, num, param, params, root, str)
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
 
@@ -31,77 +27,6 @@ newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a))
 instance newtypeMatch :: Newtype (Match a) (List RoutePart -> V (Free MatchError) (Tuple (List RoutePart) a)) where
   wrap = Match
   unwrap (Match m) = m
-
-instance matchMatchClass :: MatchClass Match where
-  lit input = Match \route ->
-    case route of
-      Cons (Path i) rs | i == input ->
-        pure $ Tuple rs unit
-      Cons (Path _) rs ->
-        invalid $ free $  UnexpectedPath input
-      _ ->
-        invalid $ free ExpectedPathPart
-
-  num = Match \route ->
-    case route of
-      Cons (Path input) rs ->
-        let res = readFloat input in
-        if isNaN res then
-          invalid $ free ExpectedNumber
-        else
-          pure $ Tuple rs res
-      _ ->
-        invalid $ free ExpectedNumber
-
-  int = Match \route ->
-    case route of
-      Cons (Path input) rs -> case fromString input of
-        Nothing -> invalid $ free ExpectedInt
-        Just res -> pure $ Tuple rs res
-      _ ->
-        invalid $ free ExpectedInt
-
-  bool = Match \route ->
-    case route of
-      Cons (Path input) rs | input == "true" ->
-        pure $ Tuple rs true
-      Cons (Path input) rs | input == "false" ->
-        pure $ Tuple rs false
-      _ ->
-        invalid $ free ExpectedBoolean
-
-  str = Match \route ->
-    case route of
-      Cons (Path input) rs ->
-        pure $ Tuple rs input
-      _ ->
-        invalid $ free ExpectedString
-
-  param key = Match \route ->
-    case route of
-      Cons (Query map) rs ->
-        case M.lookup key map of
-          Nothing ->
-            invalid $ free $ KeyNotFound key
-          Just el ->
-            pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
-      _ ->
-        invalid $ free ExpectedQuery
-
-  params = Match \route ->
-    case route of
-      Cons (Query map) rs ->
-        pure $ Tuple rs map
-      _ ->
-        invalid $ free ExpectedQuery
-
-  end = Match \route ->
-    case route of
-      Nil -> pure $ Tuple Nil unit
-      _ -> invalid $ free ExpectedEnd
-
-  fail msg = Match \_ ->
-    invalid $ free $ Fail msg
 
 instance matchFunctor :: Functor Match where
   map fn (Match r2e) = Match $ \r ->
@@ -126,6 +51,89 @@ instance matchApply :: Apply Match where
 
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
+
+-- | Matches a leading slash.
+root :: Match Unit
+root = lit ""
+
+lit :: String -> Match Unit
+lit input = Match \route ->
+  case route of
+    Cons (Path i) rs | i == input ->
+      pure $ Tuple rs unit
+    Cons (Path _) rs ->
+      invalid $ free $  UnexpectedPath input
+    _ ->
+      invalid $ free ExpectedPathPart
+
+num :: Match Number
+num = Match \route ->
+  case route of
+    Cons (Path input) rs ->
+      let res = readFloat input in
+      if isNaN res then
+        invalid $ free ExpectedNumber
+      else
+        pure $ Tuple rs res
+    _ ->
+      invalid $ free ExpectedNumber
+
+int :: Match Int
+int = Match \route ->
+  case route of
+    Cons (Path input) rs -> case fromString input of
+      Nothing -> invalid $ free ExpectedInt
+      Just res -> pure $ Tuple rs res
+    _ ->
+      invalid $ free ExpectedInt
+
+bool :: Match Boolean
+bool = Match \route ->
+  case route of
+    Cons (Path input) rs | input == "true" ->
+      pure $ Tuple rs true
+    Cons (Path input) rs | input == "false" ->
+      pure $ Tuple rs false
+    _ ->
+      invalid $ free ExpectedBoolean
+
+str :: Match String
+str = Match \route ->
+  case route of
+    Cons (Path input) rs ->
+      pure $ Tuple rs input
+    _ ->
+      invalid $ free ExpectedString
+
+param :: String -> Match String
+param key = Match \route ->
+  case route of
+    Cons (Query map) rs ->
+      case M.lookup key map of
+        Nothing ->
+          invalid $ free $ KeyNotFound key
+        Just el ->
+          pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
+    _ ->
+      invalid $ free ExpectedQuery
+
+params :: Match (M.Map String String)
+params = Match \route ->
+  case route of
+    Cons (Query map) rs ->
+      pure $ Tuple rs map
+    _ ->
+      invalid $ free ExpectedQuery
+
+end :: Match Unit
+end = Match \route ->
+  case route of
+    Nil -> pure $ Tuple Nil unit
+    _ -> invalid $ free ExpectedEnd
+
+fail :: forall a. String -> Match a
+fail msg = Match \_ ->
+  invalid $ free $ Fail msg
 
 -- | Matches a non-empty string.
 nonempty :: Match NonEmptyString
