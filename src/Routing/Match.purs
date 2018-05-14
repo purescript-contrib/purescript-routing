@@ -120,7 +120,7 @@ instance matchApply :: Apply Match where
   apply (Match r2a2b) (Match r2a) =
     Match $ (\r -> unV (processFnErr r) processFnRes (r2a2b r))
     where processFnErr r err =
-            invalid $ err * unV id (const one) (r2a r)
+            invalid $ err * unV identity (const one) (r2a r)
           processFnRes (Tuple rs a2b) =
             unV invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
