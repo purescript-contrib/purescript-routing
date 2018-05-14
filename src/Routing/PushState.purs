@@ -21,7 +21,6 @@ import Effect.Ref as Ref
 import Foreign (Foreign)
 import Routing (match)
 import Routing.Match (Match)
-import Web.DOM.CharacterData as CharacterData
 import Web.DOM.Document (createTextNode) as DOM
 import Web.DOM.MutationObserver (mutationObserver, observe) as DOM
 import Web.DOM.Node (setNodeValue) as DOM
@@ -194,7 +193,7 @@ makeImmediate run = do
       >>= Window.document
       >>> map HTMLDocument.toDocument
   nextTick ← Ref.new (Right 0)
-  obsvNode ← CharacterData.toNode <<< Text.toCharacterData <$> DOM.createTextNode "" document
+  obsvNode ← Text.toNode <$> DOM.createTextNode "" document
   observer ← DOM.mutationObserver \_ _ → do
     Ref.modify (either (Right <<< add 1) Right) nextTick
     run
