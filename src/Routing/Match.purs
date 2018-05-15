@@ -56,6 +56,8 @@ instance matchApplicative :: Applicative Match where
 root :: Match Unit
 root = lit ""
 
+-- | `lit x` will match exactly the path component `x`.
+-- | For example, `lit "x"` matches `/x`.
 lit :: String -> Match Unit
 lit input = Match \route ->
   case route of
@@ -66,6 +68,7 @@ lit input = Match \route ->
     _ ->
       invalid $ free ExpectedPathPart
 
+-- | `num` matches any numerical path component.
 num :: Match Number
 num = Match \route ->
   case route of
@@ -78,6 +81,7 @@ num = Match \route ->
     _ ->
       invalid $ free ExpectedNumber
 
+-- | `int` matches any integer path component.
 int :: Match Int
 int = Match \route ->
   case route of
@@ -87,6 +91,7 @@ int = Match \route ->
     _ ->
       invalid $ free ExpectedInt
 
+-- | `bool` matches any boolean path component.
 bool :: Match Boolean
 bool = Match \route ->
   case route of
@@ -97,6 +102,8 @@ bool = Match \route ->
     _ ->
       invalid $ free ExpectedBoolean
 
+-- | `str` matches any path string component.
+-- | For example, `str` matches `/foo` as `"foo"`.
 str :: Match String
 str = Match \route ->
   case route of
@@ -105,6 +112,8 @@ str = Match \route ->
     _ ->
       invalid $ free ExpectedString
 
+-- | `param p` matches a parameter assignment `q=v` within a query block.
+-- | For example, `param "q"` matches `/?q=a&r=b` as `"a"`.
 param :: String -> Match String
 param key = Match \route ->
   case route of
@@ -117,6 +126,10 @@ param key = Match \route ->
     _ ->
       invalid $ free ExpectedQuery
 
+-- | `params` matches an entire query block. For exmaple, `params`
+-- | matches `/?q=a&r=b` as the map `{q : "a", r : "b"}`. Note that
+-- | `lit "foo" *> params` does *not* match `/foo`, since a query component
+-- | is *required*.
 params :: Match (M.Map String String)
 params = Match \route ->
   case route of
@@ -125,6 +138,7 @@ params = Match \route ->
     _ ->
       invalid $ free ExpectedQuery
 
+-- | `end` matches the end of a route.
 end :: Match Unit
 end = Match \route ->
   case route of
