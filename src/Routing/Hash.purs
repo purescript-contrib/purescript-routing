@@ -11,18 +11,18 @@ module Routing.Hash
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Ref as Ref
-import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
-import Web.HTML (window)
-import Web.HTML.Location as L
-import Web.HTML.Window as Window
-import Web.HTML.Window.EventTypes as WET
 import Data.Foldable (class Foldable, indexl)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String (Pattern(..), stripPrefix)
+import Effect (Effect)
+import Effect.Ref as Ref
 import Routing (match, matchWith)
 import Routing.Match (Match)
+import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
+import Web.HTML (window)
+import Web.HTML.Event.HashChangeEvent.EventTypes as ET
+import Web.HTML.Location as L
+import Web.HTML.Window as Window
 
 -- | Gets the global location hash.
 getHash :: Effect String
@@ -48,8 +48,8 @@ foldHashes cb init = do
   ref <- Ref.new =<< init =<< getHash
   win <- Window.toEventTarget <$> window
   listener <- eventListener \_ -> flip Ref.write ref =<< join (cb <$> Ref.read ref <*> getHash)
-  addEventListener WET.hashchange listener false win
-  pure $ removeEventListener WET.hashchange listener false win
+  addEventListener ET.hashchange listener false win
+  pure $ removeEventListener ET.hashchange listener false win
 
 -- | Runs the callback on every hash change providing the previous hash and the
 -- | latest hash. The provided String is the hash portion of the `Location` with

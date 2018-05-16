@@ -27,11 +27,11 @@ import Web.DOM.Node (setNodeValue) as DOM
 import Web.DOM.Text as Text
 import Web.Event.EventTarget (addEventListener, eventListener) as DOM
 import Web.HTML (window) as DOM
+import Web.HTML.Event.PopStateEvent.EventTypes as ET
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.History as History
 import Web.HTML.Location (hash, pathname, search) as DOM
 import Web.HTML.Window as Window
-import Web.HTML.Window.EventTypes as WET
 
 -- | A `PushStateInterface` is a localized instance for making location changes
 -- | and consuming the events. Since the DOM API does not provide a general
@@ -102,7 +102,7 @@ makeInterface = do
 
   DOM.window
     >>= Window.toEventTarget
-    >>> DOM.addEventListener WET.popstate listener false
+    >>> DOM.addEventListener ET.popstate listener false
 
   pure
     { pushState: stateFn History.pushState
