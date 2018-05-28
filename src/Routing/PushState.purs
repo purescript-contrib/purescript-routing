@@ -1,6 +1,5 @@
 module Routing.PushState
-  ( PushStateEffects
-  , PushStateInterface
+  ( PushStateInterface
   , LocationState
   , makeInterface
   , foldLocations
@@ -13,35 +12,26 @@ module Routing.PushState
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Ref (REF, modifyRef, newRef, readRef, writeRef)
-import DOM (DOM)
-import DOM.Event.EventTarget (addEventListener, eventListener) as DOM
-import DOM.HTML (window) as DOM
-import DOM.HTML.Event.EventTypes (popstate) as DOM
-import DOM.HTML.History (DocumentTitle(..), URL(..), pushState, replaceState, state) as DOM
-import DOM.HTML.Location (hash, pathname, search) as DOM
-import DOM.HTML.Types (HISTORY)
-import DOM.HTML.Types (htmlDocumentToDocument, windowToEventTarget) as DOM
-import DOM.HTML.Window (document, history, location) as DOM
-import DOM.Node.Document (createTextNode) as DOM
-import DOM.Node.MutationObserver (mutationObserver, observe) as DOM
-import DOM.Node.Node (setNodeValue) as DOM
-import DOM.Node.Types (textToNode) as DOM
 import Data.Either (Either(..), either)
 import Data.Foldable (class Foldable, indexl, traverse_)
-import Data.Foreign (Foreign)
 import Data.Map as Map
 import Data.Maybe (Maybe(..), maybe)
+import Effect (Effect)
+import Effect.Ref as Ref
+import Foreign (Foreign)
 import Routing (match)
 import Routing.Match (Match)
-
-type PushStateEffects eff =
-  ( history :: HISTORY
-  , dom :: DOM
-  , ref :: REF
-  | eff
-  )
+import Web.DOM.Document (createTextNode) as DOM
+import Web.DOM.MutationObserver (mutationObserver, observe) as DOM
+import Web.DOM.Node (setNodeValue) as DOM
+import Web.DOM.Text as Text
+import Web.Event.EventTarget (addEventListener, eventListener) as DOM
+import Web.HTML (window) as DOM
+import Web.HTML.Event.PopStateEvent.EventTypes as ET
+import Web.HTML.HTMLDocument as HTMLDocument
+import Web.HTML.History as History
+import Web.HTML.Location (hash, pathname, search) as DOM
+import Web.HTML.Window as Window
 
 -- | A `PushStateInterface` is a localized instance for making location changes
 -- | and consuming the events. Since the DOM API does not provide a general
@@ -53,11 +43,11 @@ type PushStateEffects eff =
 -- | * `locationState` – Dereferences the current history state
 -- | * `listen` – Subscribes to location changes (both push and pop). Returns
 -- |   an effect which removes the listener.
-type PushStateInterface eff =
-  { pushState :: Foreign -> String -> Eff eff Unit
-  , replaceState :: Foreign -> String -> Eff eff Unit
-  , locationState :: Eff eff LocationState
-  , listen :: (LocationState -> Eff eff Unit) -> Eff eff (Eff eff Unit)
+type PushStateInterface =
+  { pushState :: Foreign -> String -> Effect Unit
+  , replaceState :: Foreign -> String -> Effect Unit
+  , locationState :: Effect LocationState
+  , listen :: (LocationState -> Effect Unit) -> Effect (Effect Unit)
   }
 
 type LocationState =
@@ -72,24 +62,24 @@ type LocationState =
 -- | instance for your application. Since the DOM does not provide general
 -- | events for location changes, listeners will only be notified on push when
 -- | using the paired functions.
-makeInterface :: forall eff. Eff (PushStateEffects eff) (PushStateInterface (PushStateEffects eff))
+makeInterface :: Effect (PushStateInterface)
 makeInterface = do
-  freshRef <- newRef 0
-  listenersRef <- newRef Map.empty
+  freshRef <- Ref.new 0
+  listenersRef <- Ref.new Map.empty
 
   let
     notify ev =
-      traverse_ (_ $ ev) =<< readRef listenersRef
+      traverse_ (_ $ ev) =<< Ref.read listenersRef
 
     listen k = do
-      fresh <- readRef freshRef
-      writeRef freshRef (fresh + 1)
-      modifyRef listenersRef $ Map.insert fresh k
-      pure $ modifyRef listenersRef $ Map.delete fresh
+      fresh <- Ref.read freshRef
+      Ref.write (fresh + 1) freshRef
+      Ref.modify_ (Map.insert fresh k) listenersRef
+      pure $ Ref.modify_ (Map.delete fresh) listenersRef
 
     locationState = do
-      loc <- DOM.window >>= DOM.location
-      state <- DOM.window >>= DOM.history >>= DOM.state
+      loc <- DOM.window >>= Window.location
+      state <- DOM.window >>= Window.history >>= History.state
       pathname <- DOM.pathname loc
       search <- DOM.search loc
       hash <- DOM.hash loc
@@ -104,20 +94,19 @@ makeInterface = do
   let
     stateFn op state path = do
       DOM.window
-        >>= DOM.history
-        >>= op state (DOM.DocumentTitle "") (DOM.URL path)
+        >>= Window.history
+        >>= op state (History.DocumentTitle "") (History.URL path)
       schedule
 
-    listener =
-      DOM.eventListener \_ -> notify =<< locationState
+  listener <- DOM.eventListener \_ -> notify =<< locationState
 
   DOM.window
-    >>= DOM.windowToEventTarget
-    >>> DOM.addEventListener DOM.popstate listener false
+    >>= Window.toEventTarget
+    >>> DOM.addEventListener ET.popstate listener false
 
   pure
-    { pushState: stateFn DOM.pushState
-    , replaceState: stateFn DOM.replaceState
+    { pushState: stateFn History.pushState
+    , replaceState: stateFn History.replaceState
     , locationState
     , listen
     }
@@ -126,22 +115,21 @@ makeInterface = do
 -- | changes and the initial location. Returns an effect which removes the
 -- | listener.
 foldLocations
-  :: forall eff a
-   . (a -> LocationState -> Eff (PushStateEffects eff) a)
-  -> (LocationState -> Eff (PushStateEffects eff) a)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  :: forall a
+   . (a -> LocationState -> Effect a)
+  -> (LocationState -> Effect a)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 foldLocations cb init psi = do
-  ref <- newRef =<< init =<< psi.locationState
-  psi.listen (\loc -> writeRef ref =<< flip cb loc =<< readRef ref)
+  ref <- Ref.new =<< init =<< psi.locationState
+  psi.listen (\loc -> flip Ref.write ref =<< flip cb loc =<< Ref.read ref)
 
 -- | Runs the callback on every location change providing the previous location
 -- | and the latest location. Returns an effect which removes the listener.
 locations
-  :: forall eff
-   . (Maybe LocationState -> LocationState -> Eff (PushStateEffects eff) Unit)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  :: (Maybe LocationState -> LocationState -> Effect Unit)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 locations cb = foldLocations go (go Nothing)
   where
   go a b = Just b <$ cb a b
@@ -149,20 +137,19 @@ locations cb = foldLocations go (go Nothing)
 -- | Folds effectfully over path changes given callbacks for handling changes
 -- | and the initial path. Returns an effect which removes the listener.
 foldPaths
-  :: forall eff a
-   . (a -> String -> Eff (PushStateEffects eff) a)
-  -> (String -> Eff (PushStateEffects eff) a)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  :: forall a
+   . (a -> String -> Effect a)
+  -> (String -> Effect a)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 foldPaths cb init = foldLocations (\a -> cb a <<< _.path) (init <<< _.path)
 
 -- | Runs the callback on every path change providing the previous path and
 -- | the latest path. Returns an effect which removes the listener.
 paths
-  :: forall eff
-   . (Maybe String -> String -> Eff (PushStateEffects eff) Unit)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  :: (Maybe String -> String -> Effect Unit)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 paths = matchesWith Just
 
 -- | Runs the callback on every path change using a given `Match` parser to
@@ -170,11 +157,11 @@ paths = matchesWith Just
 -- | To avoid dropping paths, provide a fallback alternative in your parser.
 -- | Returns an effect which removes the listener.
 matches
-  :: forall eff a
+  :: forall a
    . Match a
-  -> (Maybe a -> a -> Eff (PushStateEffects eff) Unit)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  -> (Maybe a -> a -> Effect Unit)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 matches = matchesWith <<< match
 
 -- | Runs the callback on every path change using a given custom parser to
@@ -182,12 +169,12 @@ matches = matchesWith <<< match
 -- | To avoid dropping paths, provide a fallback alternative in your parser.
 -- | Returns an effect which removes the listener.
 matchesWith
-  :: forall eff f a
+  :: forall f a
    . Foldable f
   => (String -> f a)
-  -> (Maybe a -> a -> Eff (PushStateEffects eff) Unit)
-  -> PushStateInterface (PushStateEffects eff)
-  -> Eff (PushStateEffects eff) (Eff (PushStateEffects eff) Unit)
+  -> (Maybe a -> a -> Effect Unit)
+  -> PushStateInterface
+  -> Effect (Effect Unit)
 matchesWith parser cb = foldPaths go (go Nothing)
   where
   go a =
@@ -199,22 +186,19 @@ matchesWith parser cb = foldPaths go (go Nothing)
 -- | to schedule callbacks. This way it's more immediate than `setTimout` would have been.
 -- | We use a fresh counter so that the text change mutation always fires.
 -- | from: https://github.com/natefaubion/purescript-spork/blob/3b56c4d36e84866ed9b1bc27afa7ab4762ffdd01/src/Spork/Scheduler.purs#L20
-makeImmediate
-  ∷ ∀ eff
-  . Eff (ref ∷ REF, dom ∷ DOM | eff) Unit
-  → Eff (ref ∷ REF, dom ∷ DOM | eff) (Eff (ref ∷ REF, dom ∷ DOM | eff) Unit)
+makeImmediate :: Effect Unit -> Effect (Effect Unit)
 makeImmediate run = do
   document ←
     DOM.window
-      >>= DOM.document
-      >>> map DOM.htmlDocumentToDocument
-  nextTick ← newRef (Right 0)
-  obsvNode ← DOM.textToNode <$> DOM.createTextNode "" document
+      >>= Window.document
+      >>> map HTMLDocument.toDocument
+  nextTick ← Ref.new (Right 0)
+  obsvNode ← Text.toNode <$> DOM.createTextNode "" document
   observer ← DOM.mutationObserver \_ _ → do
-    modifyRef nextTick $ either (Right <<< add 1) Right
+    Ref.modify_ (either (Right <<< add 1) Right) nextTick
     run
   DOM.observe obsvNode { characterData: true } observer
   pure do
-    readRef nextTick >>= traverse_ \tick → do
-      writeRef nextTick $ Left (tick + 1)
+    Ref.read nextTick >>= traverse_ \tick → do
+      Ref.write (Left (tick + 1)) nextTick
       DOM.setNodeValue (show tick) obsvNode

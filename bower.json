@@ -24,27 +24,26 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-dom": "^4.15.0",
-    "purescript-eff": "^3.1.0",
-    "purescript-either": "^3.0.0",
-    "purescript-globals": "^3.0.0",
-    "purescript-lists": "^4.0.1",
-    "purescript-maps": "^3.0.0",
-    "purescript-maybe": "^3.0.0",
-    "purescript-prelude": "^3.0.0",
-    "purescript-semirings": "^4.0.0",
-    "purescript-tuples": "^4.0.0",
-    "purescript-validation": "^3.0.0",
-    "purescript-aff": "^4.0.0",
-    "purescript-control": "^3.0.0",
-    "purescript-console": "^3.0.0",
-    "purescript-integers": "^3.0.0",
-    "purescript-foldable-traversable": "^3.7.1"
+    "purescript-web-html": "^1.0.0",
+    "purescript-effect": "^2.0.0",
+    "purescript-either": "^4.0.0",
+    "purescript-globals": "^4.0.0",
+    "purescript-lists": "^5.0.0",
+    "purescript-maybe": "^4.0.0",
+    "purescript-prelude": "^4.0.0",
+    "purescript-semirings": "^5.0.0",
+    "purescript-tuples": "^5.0.0",
+    "purescript-validation": "^4.0.0",
+    "purescript-aff": "^5.0.0",
+    "purescript-control": "^4.0.0",
+    "purescript-console": "^4.1.0",
+    "purescript-integers": "^4.0.0",
+    "purescript-foldable-traversable": "^4.0.0"
   },
   "devDependencies": {
-    "purescript-console": "^3.0.0",
-    "purescript-assert": "^3.1.0",
-    "purescript-record": "^0.2.6",
-    "purescript-generics-rep": "^5.4.0"
+    "purescript-console": "^4.1.0",
+    "purescript-assert": "^4.0.0",
+    "purescript-record": "^1.0.0",
+    "purescript-generics-rep": "^6.0.0"
   }
 }

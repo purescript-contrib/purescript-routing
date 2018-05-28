@@ -29,7 +29,7 @@ parseQueryPart decoder =
 -- | applied to every hash part (usually `decodeURIComponent`)
 parse :: (String -> String) -> String -> Route
 parse decoder hash =
-  case flip S.splitAt hash =<< S.indexOf (S.Pattern "?") hash of
+  case flip S.splitAt hash <$> S.indexOf (S.Pattern "?") hash of
     Just { before, after } ->
       pathParts before
         <> map Query (L.fromFoldable (parseQueryPart decoder (S.drop 1 after)))

@@ -47,14 +47,13 @@ If you can only construct a URL from your route, then it's impossible to
 construct an invalid URL.
 
 To turn a stringy path into our data type, we need to define a parser using
-combinators in `Routing.Match.Class` as well as standard `Applicative` and
+combinators in `Routing.Match` as well as standard `Applicative` and
 `Alternative` combinators.
 
 ```purescript
 import Prelude
 import Control.Alternative ((<|>))
-import Routing.Match (Match)
-import Routing.Match.Class (lit, int, str, end)
+import Routing.Match (Match, lit, int, str, end)
 ```
 
 The available `Match` combinators are:
@@ -245,7 +244,7 @@ import Routing.Hash (matches)
 import MyRoute (myRoute)
 ```
 
-The `matches` combinator takes a `Match` parser and an `Eff` callback,
+The `matches` combinator takes a `Match` parser and an `Effect` callback,
 providing the previously matched route (wrapped in `Maybe` since it may be
 the initial route) and the currently matched route. You might use this
 callback to push an input to an instance of a running application.

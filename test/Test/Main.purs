@@ -2,8 +2,7 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Effect (Effect)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.Foldable (oneOf)
@@ -18,7 +17,7 @@ import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafePartial)
 import Routing (match)
 import Routing.Match (Match, bool, end, int, list, lit, nonempty, num, param, params, str)
-import Test.Assert (ASSERT, assertEqual)
+import Test.Assert (assertEqual)
 
 data MyRoutes
   = Foo Number (M.Map String String)
@@ -44,7 +43,7 @@ routing = oneOf
   , End <$> (lit "" *> int <* end)
   ]
 
-main :: Eff (assert :: ASSERT, console :: CONSOLE) Unit
+main :: Effect Unit
 main = do
   assertEqual
     { actual: match routing "foo/12/?welp='hi'&b=false"

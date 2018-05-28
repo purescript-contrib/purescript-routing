@@ -13,7 +13,7 @@ data MatchError
   | ExpectedNumber
     -- expected integer literal
   | ExpectedInt
-    -- expected string literal (found query probably or eol) 
+    -- expected string literal (found query probably or eol)
   | ExpectedString
     -- expected query found path part or eol
   | ExpectedQuery
@@ -22,7 +22,7 @@ data MatchError
     -- there is no such key in query
   | KeyNotFound String
     -- custom fail
-  | Fail String 
+  | Fail String
 
 showMatchError :: MatchError -> String
 showMatchError err =
