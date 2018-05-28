@@ -74,8 +74,8 @@ makeInterface = do
     listen k = do
       fresh <- Ref.read freshRef
       Ref.write (fresh + 1) freshRef
-      Ref.modify (Map.insert fresh k) listenersRef
-      pure $ Ref.modify (Map.delete fresh) listenersRef
+      Ref.modify_ (Map.insert fresh k) listenersRef
+      pure $ Ref.modify_ (Map.delete fresh) listenersRef
 
     locationState = do
       loc <- DOM.window >>= Window.location
@@ -195,7 +195,7 @@ makeImmediate run = do
   nextTick ← Ref.new (Right 0)
   obsvNode ← Text.toNode <$> DOM.createTextNode "" document
   observer ← DOM.mutationObserver \_ _ → do
-    Ref.modify (either (Right <<< add 1) Right) nextTick
+    Ref.modify_ (either (Right <<< add 1) Right) nextTick
     run
   DOM.observe obsvNode { characterData: true } observer
   pure do

@@ -9,7 +9,7 @@ import Data.Maybe (Maybe(..), maybe)
 import Effect (Effect)
 import Effect.Exception (error, throwException)
 import Effect.Ref as Ref
-import Foreign (readInt, toForeign)
+import Foreign (readInt, unsafeToForeign)
 import Record as Rec
 import Routing.Hash (hashes, setHash)
 import Routing.Match (Match, lit)
@@ -131,24 +131,24 @@ runPushStateTests = withTest \{ assert } -> do
       Just old', new'
         | Rec.equal old' loc1 && Rec.equal new' loc2 -> do
             assert "Locations: init -> a" true
-            hist.pushState (toForeign 2) "/b#b"
+            hist.pushState (unsafeToForeign 2) "/b#b"
         | Rec.equal old' loc2 && Rec.equal new' loc3 -> do
             assert "Locations: a -> b" true
-            hist.pushState (toForeign 3) "/c/d"
+            hist.pushState (unsafeToForeign 3) "/c/d"
         | Rec.equal old' loc3 && Rec.equal new' loc4 -> do
             assert "Locations: b -> c/d" true
-            hist.pushState (toForeign 4) "e"
+            hist.pushState (unsafeToForeign 4) "e"
         | Rec.equal old' loc4 && Rec.equal new' loc5 -> do
             assert "Locations: c/d -> c/e" true
-            hist.pushState (toForeign 5) "?f"
+            hist.pushState (unsafeToForeign 5) "?f"
         | Rec.equal old' loc5 && Rec.equal new' loc6 -> do
             assert "Locations: c/e -> c/e?f" true
-            hist.pushState (toForeign 6) "/"
+            hist.pushState (unsafeToForeign 6) "/"
             done
       _, _ -> do
         done
         assert "Locations: fail" false
-  hist.pushState (toForeign 1) "/a?a"
+  hist.pushState (unsafeToForeign 1) "/a?a"
 
 main :: Effect Unit
 main = do
