@@ -16,7 +16,7 @@ import Data.Semiring.Free (Free, free)
 import Data.String.NonEmpty (NonEmptyString)
 import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
-import Data.Validation.Semiring (V, invalid, unV)
+import Data.Validation.Semiring (V, invalid, unV, toEither)
 import Global (readFloat, isNaN)
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
@@ -125,6 +125,63 @@ param key = Match \route ->
           pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
     _ ->
       invalid $ free ExpectedQuery
+
+-- | Matches a parameter with custom decoder
+paramWith :: forall a. (String -> V (Free MatchError) a) -> String -> Match a
+paramWith decode key = Match \route ->
+  case route of
+    Cons (Query map) rs ->
+      case M.lookup key map of
+        Nothing ->
+          invalid $ free $ KeyNotFound key
+        Just s ->
+          case decode s # toEither of
+            Right el  ->
+              pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
+            Left e -> invalid $ e
+    _ ->
+      invalid $ free ExpectedQuery
+
+-- | `paramWith toNum`
+paramNum :: String -> Match Number
+paramNum = paramWith toNum
+
+-- | `paramWith toInt`
+paramInt :: String -> Match Int
+paramInt = paramWith toInt
+
+-- | `paramWith toBool`
+paramBool :: String -> Match Boolean
+paramBool = paramWith toBool
+
+-- | `Number` decoder for usage with `paramWith`
+toNum ::
+  String ->
+  V (Free MatchError) Number
+toNum s =
+  let n = readFloat s
+  in
+    if isNaN n
+    then invalid $ free ExpectedNumber
+    else pure n
+
+-- | `Int` decoder for usage with `paramWith`
+toInt ::
+  String ->
+  V (Free MatchError) Int
+toInt s =
+  case fromString s of
+    Just n -> pure n
+    Nothing -> invalid $ free ExpectedInt
+
+-- | `Boolean` decoder for usage with `paramWith`
+toBool ::
+  String ->
+  V (Free MatchError) Boolean
+toBool = case _ of
+  "true" -> pure true
+  "false" -> pure false
+  _ -> invalid $ free ExpectedBoolean
 
 -- | `params` matches an entire query block. For exmaple, `params`
 -- | matches `/?q=a&r=b` as the map `{q : "a", r : "b"}`. Note that
