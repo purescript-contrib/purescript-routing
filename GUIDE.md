@@ -90,11 +90,11 @@ Our next routes require extracting an integer `PostId`.
 ```purescript
 post :: Match MyRoute
 post =
-  Post <$> lit "posts" *> int
+  Post <$> (lit "posts" *> int)
 
 postEdit :: Match MyRoute
 postEdit =
-  PostEdit <$> lit "posts" *> int <* lit "edit"
+  PostEdit <$> (lit "posts" *> int <* lit "edit")
 ```
 
 Note the use of the `*>` and `<*` operators. These let us direct the focus of
@@ -107,7 +107,7 @@ And now finally, we need to extract multiple segments for `PostBrowse`.
 ```purescript
 postBrowse :: Match MyRoute
 postBrowse =
-  PostBrowse <$> lit "posts" *> str <*> str
+  PostBrowse <$> (lit "posts" *> str <*> str)
 ```
 
 The `<*>` combinator has arrows on both sides because we want both values.
@@ -144,9 +144,9 @@ We can also go ahead and inline our parsers.
 myRoute :: Match MyRoute
 myRoute = oneOf
   [ PostIndex <$ lit "posts"
-  , Post <$> lit "posts" *> int
-  , PostEdit <$> lit "posts" *> int <* lit "edit"
-  , PostBrowse <$> lit "posts" *> str <*> str
+  , Post <$> (lit "posts" *> int)
+  , PostEdit <$> (lit "posts" *> int <* lit "edit")
+  , PostBrowse <$> (lit "posts" *> str <*> str)
   ]
 ```
 
@@ -161,8 +161,8 @@ myRoute =
   lit "posts" *> oneOf
     [ pure PostIndex
     , Post <$> int
-    , PostEdit <$> int <* lit "edit"
-    , PostBrowse <$> str <*> str
+    , PostEdit <$> (int <* lit "edit")
+    , PostBrowse <$> (str <*> str)
     ]
 ```
 
@@ -179,9 +179,9 @@ myRoute :: Match MyRoute
 myRoute =
   lit "posts" *> oneOf
     [ PostIndex <$ end
-    , Post <$> int <* end
-    , PostEdit <$> int <* lit "edit" <* end
-    , PostBrowse <$> str <*> str <* end
+    , Post <$> (int <* end)
+    , PostEdit <$> (int <* lit "edit" <* end)
+    , PostBrowse <$> (str <*> str <* end)
     ]
 ```
 
@@ -193,9 +193,9 @@ the routes followed by an `end`, so we would still have to rearrange them.
 myRoute :: Match MyRoute
 myRoute =
   lit "posts" *> oneOf
-    [ PostEdit <$> int <* lit "edit"
+    [ PostEdit <$> (int <* lit "edit")
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (str <*> str)
     , pure PostIndex
     ] <* end
 ```
@@ -211,9 +211,9 @@ with the `root` combinator.
 myRoute :: Match MyRoute
 myRoute =
   root *> lit "posts" *> oneOf
-    [ PostEdit <$> int <* lit "edit"
+    [ PostEdit <$> (int <* lit "edit")
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (str <*> str)
     , pure PostIndex
     ] <* end
 ```
