@@ -82,7 +82,7 @@ no interesting values we want to consume, we can use `<$` from `Prelude`.
 ```purescript
 postIndex :: Match MyRoute
 postIndex =
-  PostIndex <$ lit "posts
+  PostIndex <$ lit "posts"
 ```
 
 Our next routes require extracting an integer `PostId`.
