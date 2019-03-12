@@ -24,7 +24,7 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-web-html": "^1.0.0",
+    "purescript-web-html": "^2.0.0",
     "purescript-effect": "^2.0.0",
     "purescript-either": "^4.0.0",
     "purescript-globals": "^4.0.0",
