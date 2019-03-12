@@ -43,7 +43,7 @@
   "devDependencies": {
     "purescript-console": "^4.1.0",
     "purescript-assert": "^4.0.0",
-    "purescript-record": "^1.0.0",
+    "purescript-record": "^2.0.0",
     "purescript-generics-rep": "^6.0.0"
   }
 }
