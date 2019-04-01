@@ -23,10 +23,7 @@ import Routing.Types (Route, RoutePart(..))
 
 newtype Match a = Match (Route -> V (Free MatchError) (Tuple Route a))
 
--- Manual instance due to the `Route` synonym in the above
-instance newtypeMatch :: Newtype (Match a) (List RoutePart -> V (Free MatchError) (Tuple (List RoutePart) a)) where
-  wrap = Match
-  unwrap (Match m) = m
+derive instance newtypeMatch :: Newtype (Match a) _
 
 instance matchFunctor :: Functor Match where
   map fn (Match r2e) = Match $ \r ->
