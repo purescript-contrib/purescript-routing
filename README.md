@@ -1,7 +1,7 @@
 # purescript-routing
 
-[![Latest release](http://img.shields.io/github/release/purescript-contrib/purescript-routing.svg)](https://github.com/slamdata/purescript-routing/releases)
-[![Build status](https://travis-ci.org/purescript-contrib/purescript-routing.svg?branch=master)](https://travis-ci.org/slamdata/purescript-routing)
+[![Latest release](http://img.shields.io/github/release/purescript-contrib/purescript-routing.svg)](https://github.com/purescript-contrib/purescript-routing/releases)
+[![Build status](https://travis-ci.org/purescript-contrib/purescript-routing.svg?branch=master)](https://travis-ci.org/purescript-contrib/purescript-routing)
 
 Client side routing library.
 
