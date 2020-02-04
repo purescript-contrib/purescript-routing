@@ -35,7 +35,7 @@ instance showMyRoutes :: Show MyRoutes where show = genericShow
 routing :: Match MyRoutes
 routing = oneOf
   [ Foo <$> (lit "foo" *> num) <*> params
-  , Bar <$> (lit "bar" *> bool) <*> (param "baz")
+  , Bar <$> (lit "bar" *> bool) <*> (param "baz") <* end
   , Baz <$> (lit "list" *> list num)
   , Quux <$> (lit "" *> lit "quux" *> int)
   , Corge <$> (lit "corge" *> str)
@@ -56,6 +56,10 @@ main = do
   assertEqual
     { actual: match routing "bar/true?baz=test"
     , expected: Right (Bar true "test")
+    }
+  assertEqual
+    { actual: lmap (const unit) (match routing "bar/true?baz=test&oof=true")
+    , expected: Left unit
     }
   assertEqual
     { actual: match routing "bar/false?baz=%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%84%D0%B0%D0%B9%D0%BB"

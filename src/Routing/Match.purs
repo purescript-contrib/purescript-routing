@@ -118,8 +118,12 @@ param key = Match \route ->
       case M.lookup key map of
         Nothing ->
           invalid $ free $ KeyNotFound key
-        Just el ->
-          pure $ Tuple (Cons (Query <<< M.delete key $ map) rs) el
+        Just el -> do
+          let remainingParams = M.delete key map
+          pure $
+            if M.isEmpty remainingParams
+              then Tuple rs el
+              else Tuple (Cons (Query remainingParams) rs) el
     _ ->
       invalid $ free ExpectedQuery
 
