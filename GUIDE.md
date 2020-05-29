@@ -5,6 +5,12 @@
 * An `Applicative` parsing framework for paths (`Routing.Match`)
 * Routing effects and events (`Routing.Hash` or `Routing.PushState`)
 
+# Quick examples
+
+If you prefer to learn from a small working example that contains the end-result of material in this guide, you may `cd` to any of the directories in `examples` and follow their `README.md` instructions. Current examples include:
+* `log-hash-route` - Hash-based routing that logs routes to console.
+* `halogen-render-hash-route` - Hash-based routing that renders routes to page with Halogen.
+
 ## Parsing routes with `Routing.Match`
 
 In many routing frameworks, you might start by using a stringly-typed DSL for
@@ -38,7 +44,7 @@ data MyRoute
   = PostIndex
   | Post PostId
   | PostEdit PostId
-  | PostBrowse String String
+  | PostBrowse Int String
 ```
 
 By using a data type, we can use `case` analysis to guarantee that we've
@@ -111,7 +117,7 @@ And now finally, we need to extract multiple segments for `PostBrowse`.
 ```purescript
 postBrowse :: Match MyRoute
 postBrowse =
-  PostBrowse <$> (lit "posts" *> str) <*> str
+  PostBrowse <$> (lit "posts" *> lit "browse" *> int) <*> str
 ```
 
 The `<*>` combinator has arrows on both sides because we want both values.
@@ -150,7 +156,7 @@ myRoute = oneOf
   [ PostIndex <$ lit "posts"
   , Post <$> (lit "posts" *> int)
   , PostEdit <$> (lit "posts" *> int) <* lit "edit"
-  , PostBrowse <$> (lit "posts" *> str) <*> str
+  , PostBrowse <$> (lit "posts" *> lit "browse" *> int) <*> str
   ]
 ```
 
@@ -166,7 +172,7 @@ myRoute =
     [ pure PostIndex
     , Post <$> int
     , PostEdit <$> int <* lit "edit"
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     ]
 ```
 
@@ -185,7 +191,7 @@ myRoute =
     [ PostIndex <$ end
     , Post <$> int <* end
     , PostEdit <$> int <* lit "edit" <* end
-    , PostBrowse <$> str <*> str <* end
+    , PostBrowse <$> (lit "browse" *> int) <*> str <* end
     ]
 ```
 
@@ -199,7 +205,7 @@ myRoute =
   lit "posts" *> oneOf
     [ PostEdit <$> int <* lit "edit"
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     , pure PostIndex
     ] <* end
 ```
@@ -217,7 +223,7 @@ myRoute =
   root *> lit "posts" *> oneOf
     [ PostEdit <$> int <* lit "edit"
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     , pure PostIndex
     ] <* end
 ```
@@ -234,6 +240,7 @@ matchMyRoute = match myRoute
 test1 = matchMyRoute "/posts"
 test2 = matchMyRoute "/posts/12"
 test3 = matchMyRoute "/posts/12/edit"
+test3 = matchMyRoute "/posts/browse/2004/June"
 test4 = matchMyRoute "/psots/bad"
 ```
 
@@ -241,7 +248,9 @@ test4 = matchMyRoute "/psots/bad"
 
 Now that we have a parser, we'll want to respond to events and fire a
 callback like in our original example. `purescript-routing` supports
-hash-based routing via `Routing.Hash`.
+hash-based routing via `Routing.Hash`. Hash-based routing uses anchors
+(`#` or "hash" character) to specify the routes.
+For example: `www.example.com/#posts/12/edit`.
 
 ```purescript
 import Routing.Hash (matches)
@@ -284,6 +293,9 @@ main = do
 Alternatively, we could explicitly add a `NotFound` constructor to `MyRoute`.
 
 ## Routing events with `Routing.PushState`
+
+PushState-based routing *avoids* the use of anchors (`#`) to specify the routes.
+For example: `www.example.com/posts/12/edit`.
 
 Routing with `Routing.PushState` is similar to hash-based routing except that
 we must first create an interface. Browsers don't handle location events
