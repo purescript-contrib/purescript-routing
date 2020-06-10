@@ -5,12 +5,6 @@
 * An `Applicative` parsing framework for paths (`Routing.Match`)
 * Routing effects and events (`Routing.Hash` or `Routing.PushState`)
 
-# Quick examples
-
-If you prefer to learn from a small working example that contains the end-result of material in this guide, you may `cd` to any of the directories in `examples` and follow their `README.md` instructions. Current examples include:
-* `log-hash-route` - Hash-based routing that logs routes to console.
-* `halogen-render-hash-route` - Hash-based routing that renders routes to page with Halogen.
-
 ## Parsing routes with `Routing.Match`
 
 In many routing frameworks, you might start by using a stringly-typed DSL for
