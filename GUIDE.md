@@ -310,12 +310,12 @@ Use the created interface to push new states and routes. States are always
 provide a well-typed interface with any guarantees.
 
 ```purescript
-import Data.Foreign (toForeign)
+import Foreign (unsafeToForeign)
 
 main = do
   nav <- makeInterface
   ...
-  nav.pushState (toForeign {}) "/about"
+  nav.pushState (unsafeToForeign {}) "/about"
 ```
 
 One option is to use `purescript-simple-json` which provides easy codecs to
