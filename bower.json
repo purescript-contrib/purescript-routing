@@ -1,6 +1,6 @@
 {
   "name": "purescript-routing",
-  "homepage": "https://github.com/slamdata/purescript-routing",
+  "homepage": "https://github.com/purescript-contrib/purescript-routing",
   "authors": [
     "Maxim Zimaliev <zimaliev@yandex.ru>"
   ],
@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/slamdata/purescript-routing.git"
+    "url": "https://github.com/slamdata/purescript-routing.git"
   },
   "ignore": [
     "**/.*",
