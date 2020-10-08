@@ -14,11 +14,11 @@ Other improvements:
 
 ## [v9.0.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v9.0.1) - 2020-02-09
 
-Bug fix: `param` will now remove `Query` from the internal state once all parameters have been consumed, allowing `end` to be used to disallow further parameters.
+- Bug fix: `param` will now remove `Query` from the internal state once all parameters have been consumed, allowing `end` to be used to disallow further parameters.
 
 ## [v9.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v9.0.0) - 2019-03-12
 
-Updated dependencies
+- Updated dependencies
 
 ## [v8.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v8.0.0) - 2018-05-28
 
@@ -63,15 +63,15 @@ All updates courtesy of @coot
 
 ## [v5.1.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v5.1.0) - 2017-04-21
 
-Added `end` combinator @throughnothing
+- Added `end` combinator @throughnothing
 
 ## [v5.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v5.0.0) - 2017-04-10
 
-Updates for PureScript 0.11 (@coot)
+- Updates for PureScript 0.11 (@coot)
 
 ## [v4.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v4.0.0) - 2017-02-22
 
-Renamed `matchHash` and `matchHash'` to `match` and `matchWith`
+- Renamed `matchHash` and `matchHash'` to `match` and `matchWith`
 
 ## [v3.1.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v3.1.0) - 2017-02-18
 
