@@ -1,16 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "clean": "rimraf output && rimraf .pulp-cache",
-    "build": "pulp build -- --censor-lib --strict",
-    "test": "pulp test",
-    "test:browser": "pulp build -I test -m Test.Browser --to test/dist/bundle.js",
+    "test:browser": "spago bundle-app -m Test.Browser --to test/dist/bundle.js",
     "test:serve": "static test"
   },
   "devDependencies": {
-    "node-static": "^0.7.11",
-    "pulp": "^14.0.0",
-    "purescript-psa": "^0.7.3",
-    "rimraf": "^3.0.2"
+    "node-static": "^0.7.11"
   }
 }
