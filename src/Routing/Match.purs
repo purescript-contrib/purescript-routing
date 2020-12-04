@@ -17,7 +17,7 @@ import Data.String.NonEmpty (NonEmptyString)
 import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
 import Data.Validation.Semiring (V, invalid, unV)
-import Global (readFloat, isNaN)
+import Data.Number as Number
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
 
@@ -70,11 +70,9 @@ num :: Match Number
 num = Match \route ->
   case route of
     Cons (Path input) rs ->
-      let res = readFloat input in
-      if isNaN res then
-        invalid $ free ExpectedNumber
-      else
-        pure $ Tuple rs res
+      case Number.fromString input of
+        Just res | not (Number.isNaN res) -> pure $ Tuple rs res
+        _ -> invalid $ free ExpectedNumber
     _ ->
       invalid $ free ExpectedNumber
 
