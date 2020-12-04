@@ -8,7 +8,7 @@
   , "either"
   , "foldable-traversable"
   , "generics-rep"
-  , "globals"
+  , "numbers"
   , "integers"
   , "lists"
   , "maybe"
