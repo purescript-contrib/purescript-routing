@@ -6,7 +6,7 @@ module Routing
 import Prelude
 
 import Data.Either (Either)
-import Global.Unsafe (unsafeDecodeURIComponent)
+-- import Global.Unsafe (unsafeDecodeURIComponent)
 import Routing.Match (Match, runMatch)
 import Routing.Parser (parse)
 
