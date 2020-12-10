@@ -16,7 +16,7 @@ import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafePartial)
 import Routing (match)
-import Routing.Match (Match, bool, end, int, list, lit, nonempty, num, param, params, str)
+import Routing.Match (Match, bool, end, int, list, lit, nonempty, num, param, paramNum, paramInt, paramBool, params, str)
 import Test.Assert (assertEqual)
 
 data MyRoutes
@@ -26,6 +26,7 @@ data MyRoutes
   | Quux Int
   | Corge String
   | Corge' NonEmptyString
+  | TypedParams Int Boolean Number
   | End Int
 
 derive instance eqMyRoutes :: Eq MyRoutes
@@ -40,6 +41,7 @@ routing = oneOf
   , Quux <$> (lit "" *> lit "quux" *> int)
   , Corge <$> (lit "corge" *> str)
   , Corge' <$> (lit "corge'" *> nonempty)
+  , TypedParams <$ lit "typedParams" <*> paramInt "i" <*> paramBool "is" <*> paramNum "n"
   , End <$> (lit "" *> int <* end)
   ]
 
@@ -52,6 +54,10 @@ main = do
   assertEqual
     { actual: match routing "foo/12?welp='hi'&b=false"
     , expected: Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"]))
+    }
+  assertEqual
+    { actual: match routing "typedParams?i=123&is=false&n=0.99"
+    , expected: Right (TypedParams 123 false 0.99)
     }
   assertEqual
     { actual: match routing "bar/true?baz=test"
