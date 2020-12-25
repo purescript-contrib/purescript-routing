@@ -234,8 +234,8 @@ matchMyRoute = match myRoute
 test1 = matchMyRoute "/posts"
 test2 = matchMyRoute "/posts/12"
 test3 = matchMyRoute "/posts/12/edit"
-test3 = matchMyRoute "/posts/browse/2004/June"
-test4 = matchMyRoute "/psots/bad"
+test4 = matchMyRoute "/posts/browse/2004/June"
+test5 = matchMyRoute "/psots/bad"
 ```
 
 ## Routing events with `Routing.Hash`
