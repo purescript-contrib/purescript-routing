@@ -7,7 +7,6 @@
   , "effect"
   , "either"
   , "foldable-traversable"
-  , "generics-rep"
   , "integers"
   , "js-uri"
   , "lists"
