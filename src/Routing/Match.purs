@@ -16,7 +16,7 @@ import Data.Semiring.Free (Free, free)
 import Data.String.NonEmpty (NonEmptyString)
 import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..), snd)
-import Data.Validation.Semiring (V, invalid, unV)
+import Data.Validation.Semiring (V, invalid, validation)
 import Data.Number as Number
 import Routing.Match.Error (MatchError(..), showMatchError)
 import Routing.Types (Route, RoutePart(..))
@@ -27,7 +27,7 @@ derive instance newtypeMatch :: Newtype (Match a) _
 
 instance matchFunctor :: Functor Match where
   map fn (Match r2e) = Match $ \r ->
-    unV invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
+    validation invalid (\(Tuple rs a) -> pure $ Tuple rs (fn a)) $ r2e r
 
 instance matchAlt :: Alt Match where
   alt (Match r2e1) (Match r2e2) = Match $ \r -> do
@@ -40,11 +40,11 @@ instance matchAlternative :: Alternative Match
 
 instance matchApply :: Apply Match where
   apply (Match r2a2b) (Match r2a) =
-    Match $ (\r -> unV (processFnErr r) processFnRes (r2a2b r))
+    Match $ (\r -> validation (processFnErr r) processFnRes (r2a2b r))
     where processFnErr r err =
-            invalid $ err * unV identity (const one) (r2a r)
+            invalid $ err * validation identity (const one) (r2a r)
           processFnRes (Tuple rs a2b) =
-            unV invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
+            validation invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
@@ -160,7 +160,7 @@ list (Match r2a) =
   Match $ go Nil
   where go :: List a -> Route -> V (Free MatchError) (Tuple Route (List a))
         go accum r =
-          unV
+          validation
           (const $ pure (Tuple r (reverse accum)))
           (\(Tuple rs a) -> go (Cons a accum) rs)
           (r2a r)
@@ -169,7 +169,7 @@ list (Match r2a) =
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String
 runMatch :: forall a. Match a -> Route -> Either String a
 runMatch (Match fn) route =
-  unV foldErrors (Right <<< snd) $ fn route
+  validation foldErrors (Right <<< snd) $ fn route
   where
   foldErrors errs =
     Left $ foldl (\b a -> a <> "\n" <> b) "" do
@@ -195,7 +195,7 @@ runMatch (Match fn) route =
 -- | ```
 eitherMatch :: forall a b. Match (Either a b) -> Match b
 eitherMatch (Match r2eab) = Match $ \r ->
-  unV invalid runEither $ (r2eab r)
+  validation invalid runEither $ (r2eab r)
   where
   runEither (Tuple rs eit) =
     case eit of
@@ -209,4 +209,4 @@ eitherMatch (Match r2eab) = Match $ \r ->
 -- | -- (Right (fromFoldable [(Tuple "a" "1")]))
 -- | ```
 optionalMatch :: forall a. Match a -> Match (Maybe a)
-optionalMatch (Match fn) = Match (\route -> unV (const $ pure (Tuple route Nothing)) (pure <<< map Just) $ fn route)
+optionalMatch (Match fn) = Match (\route -> validation (const $ pure (Tuple route Nothing)) (pure <<< map Just) $ fn route)

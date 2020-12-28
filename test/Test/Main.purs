@@ -7,10 +7,10 @@ import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.Foldable (oneOf)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
 import Data.List as L
 import Data.Map as M
+import Data.Show.Generic (genericShow)
 import Data.String.NonEmpty (NonEmptyString)
 import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..))

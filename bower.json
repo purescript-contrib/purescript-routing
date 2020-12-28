@@ -43,7 +43,6 @@
   "devDependencies": {
     "purescript-console": "master",
     "purescript-assert": "master",
-    "purescript-record": "master",
-    "purescript-generics-rep": "master"
+    "purescript-record": "master"
   }
 }
