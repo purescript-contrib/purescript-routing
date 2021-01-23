@@ -5,16 +5,22 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes (😱!!!):
+- Added support for PureScript 0.14 and dropped support for all previous versions (#77, #79)
 
 New features:
 
 Bugfixes:
 
 Other improvements:
+- Updated documentation to use `Foreign.unsafeToForeign` as `Foreign.toForeign` has been removed (#74)
+- Fixed duplicate variable name in documentation (#78)
+- Edited guide to better match example JS DSL snippet (#72) 
+- Changed default branch to `main` from `master`
+- Updated to comply with Contributors library guidelines by adding new issue and pull request templates, updating documentation, and migrating to Spago for local development and CI (#75)
 
 ## [v9.0.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v9.0.1) - 2020-02-09
 
-- Bug fix: `param` will now remove `Query` from the internal state once all parameters have been consumed, allowing `end` to be used to disallow further parameters.
+- Bugfix: `param` will now remove `Query` from the internal state once all parameters have been consumed, allowing `end` to be used to disallow further parameters.
 
 ## [v9.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v9.0.0) - 2019-03-12
 
@@ -22,7 +28,7 @@ Other improvements:
 
 ## [v8.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v8.0.0) - 2018-05-28
 
-- Updates for 0.12 and `Effect`.
+- Updated for 0.12 and `Effect`.
 - Removed `Match` class.
 
 ## [v7.1.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v7.1.0) - 2018-03-22
@@ -33,17 +39,17 @@ Other improvements:
 
 ## [v7.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v7.0.0) - 2018-01-28
 
-- Removes FFI
-- Removes Aff functions
-- Adds general `foldHashes`
-- Removes `hashChanged`
-- Changes the way `matches` works (filters failures)
+- Removed FFI
+- Removed Aff functions
+- Added general `foldHashes`
+- Removed `hashChanged`
+- Changed the way `matches` works (filters failures)
 
 @natefaubion
 
 ## [v6.1.2](https://github.com/purescript-contrib/purescript-routing/releases/tag/v6.1.2) - 2017-10-18
 
-- Fix for parsing of URI-encoded path segments without query fragments
+- Fixed for parsing of URI-encoded path segments without query fragments
 
 ## [v6.1.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v6.1.1) - 2017-10-10
 
@@ -63,7 +69,7 @@ All updates courtesy of @coot
 
 ## [v5.1.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v5.1.0) - 2017-04-21
 
-- Added `end` combinator @throughnothing
+- Added `end` combinator (@throughnothing)
 
 ## [v5.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v5.0.0) - 2017-04-10
 
@@ -87,7 +93,7 @@ All updates courtesy of @coot
 
 ## [v1.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v1.0.0) - 2016-07-04
 
-Updated for PureScript 0.9 and core libraries 1.0.
+- Updated for PureScript 0.9 and core libraries 1.0.
 
 ## [v0.4.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v0.4.0) - 2016-03-13
 
@@ -95,6 +101,12 @@ Updated for PureScript 0.9 and core libraries 1.0.
 
 ## [v0.2.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v0.2.1) - 2015-12-16
 
+- Falls back to `global.unsafeDecodeURIComponent` if `window` is not available (#16)
+
 ## [v0.2.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v0.2.0) - 2015-09-23
 
+- Updated for PureScript 0.7
+
 ## [v0.1.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v0.1.0) - 2015-07-10
+
+- Initial versioned release
