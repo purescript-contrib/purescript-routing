@@ -24,25 +24,26 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-web-html": "master",
-    "purescript-effect": "master",
-    "purescript-either": "master",
-    "purescript-lists": "master",
-    "purescript-maybe": "master",
-    "purescript-prelude": "master",
-    "purescript-semirings": "master",
-    "purescript-tuples": "master",
-    "purescript-validation": "master",
-    "purescript-aff": "master",
-    "purescript-control": "master",
-    "purescript-console": "master",
-    "purescript-integers": "master",
-    "purescript-js-uri": "https://github.com/purescript-contrib/purescript-js-uri.git#main",
-    "purescript-foldable-traversable": "master"
+    "purescript-aff": "^6.0.0",
+    "purescript-console": "^5.0.0",
+    "purescript-control": "^5.0.0",
+    "purescript-effect": "^3.0.0",
+    "purescript-either": "^5.0.0",
+    "purescript-foldable-traversable": "^5.0.0",
+    "purescript-integers": "^5.0.0",
+    "purescript-js-uri": "^2.0.0",
+    "purescript-lists": "^6.0.0",
+    "purescript-maybe": "^5.0.0",
+    "purescript-numbers": "^7.0.0",
+    "purescript-partial": "^3.0.0",
+    "purescript-prelude": "^5.0.0",
+    "purescript-semirings": "^6.0.0",
+    "purescript-tuples": "^6.0.0",
+    "purescript-validation": "^5.0.0",
+    "purescript-web-html": "^3.0.0"
   },
   "devDependencies": {
-    "purescript-console": "master",
-    "purescript-assert": "master",
-    "purescript-record": "master"
+    "purescript-assert": "^5.0.0",
+    "purescript-record": "^3.0.0"
   }
 }
