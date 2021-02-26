@@ -31,7 +31,7 @@
     "purescript-either": "^5.0.0",
     "purescript-foldable-traversable": "^5.0.0",
     "purescript-integers": "^5.0.0",
-    "purescript-js-uri": "^2.0.0",
+    "purescript-js-uri": "https://github.com/purescript-contrib/purescript-js-uri.git#2.0.0",
     "purescript-lists": "^6.0.0",
     "purescript-maybe": "^5.0.0",
     "purescript-numbers": "^7.0.0",
