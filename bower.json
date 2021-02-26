@@ -34,7 +34,7 @@
     "purescript-js-uri": "https://github.com/purescript-contrib/purescript-js-uri.git#2.0.0",
     "purescript-lists": "^6.0.0",
     "purescript-maybe": "^5.0.0",
-    "purescript-numbers": "^7.0.0",
+    "purescript-numbers": "^8.0.0",
     "purescript-partial": "^3.0.0",
     "purescript-prelude": "^5.0.0",
     "purescript-semirings": "^6.0.0",
