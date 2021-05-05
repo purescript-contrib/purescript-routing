@@ -18,6 +18,7 @@ Other improvements:
 - Changed default branch to `main` from `master`
 - Updated to comply with Contributors library guidelines by adding new issue and pull request templates, updating documentation, and migrating to Spago for local development and CI (#75)
 - Fix warnings revealed by v0.14.1 PS release (#82 by @JordanMartinez)
+- Install missing dependencies used in source code (#82 by @JordanMartinez)
 
 ## [v10.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v10.0.0) - 2021-02-26
 
