@@ -4,7 +4,23 @@ Notable changes to this project are documented in this file. The format is based
 
 ## [Unreleased]
 
-Breaking changes (😱!!!):
+Breaking changes:
+- Added support for PureScript 0.14 and dropped support for all previous versions (#77, #79)
+
+New features:
+
+Bugfixes:
+
+Other improvements:
+- Updated documentation to use `Foreign.unsafeToForeign` as `Foreign.toForeign` has been removed (#74)
+- Fixed duplicate variable name in documentation (#78)
+- Edited guide to better match example JS DSL snippet (#72) 
+- Changed default branch to `main` from `master`
+- Updated to comply with Contributors library guidelines by adding new issue and pull request templates, updating documentation, and migrating to Spago for local development and CI (#75)
+
+## [v10.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v10.0.0) - 2021-02-26
+
+Breaking changes:
 - Added support for PureScript 0.14 and dropped support for all previous versions (#77, #79)
 
 New features:
