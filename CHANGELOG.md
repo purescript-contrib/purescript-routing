@@ -11,6 +11,10 @@ New features:
 Bugfixes:
 
 Other improvements:
+
+## [v10.0.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v10.0.1) - 2021-05-06
+
+Other improvements:
 - Fixed warnings revealed by v0.14.1 PS release (#82 by @JordanMartinez)
 - Installed transitive dependencies used in source code (#82 by @JordanMartinez)
 
@@ -18,10 +22,6 @@ Other improvements:
 
 Breaking changes:
 - Added support for PureScript 0.14 and dropped support for all previous versions (#77, #79)
-
-New features:
-
-Bugfixes:
 
 Other improvements:
 - Updated documentation to use `Foreign.unsafeToForeign` as `Foreign.toForeign` has been removed (#74)
