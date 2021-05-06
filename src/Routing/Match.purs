@@ -60,7 +60,7 @@ lit input = Match \route ->
   case route of
     Cons (Path i) rs | i == input ->
       pure $ Tuple rs unit
-    Cons (Path _) rs ->
+    Cons (Path _) _ ->
       invalid $ free $  UnexpectedPath input
     _ ->
       invalid $ free ExpectedPathPart

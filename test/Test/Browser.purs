@@ -144,6 +144,8 @@ runPushStateTests = withTest \{ assert } -> do
         | Rec.equal old' loc5 && Rec.equal new' loc6 -> do
             assert "Locations: c/e -> c/e?f" true
             hist.pushState (unsafeToForeign 6) "/"
+        | Rec.equal old' loc6 && Rec.equal new' loc7 -> do
+            assert "Locations: c/e?f -> /" true
             done
       _, _ -> do
         done

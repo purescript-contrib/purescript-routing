@@ -11,6 +11,8 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Fixed warnings revealed by v0.14.1 PS release (#82 by @JordanMartinez)
+- Installed transitive dependencies used in source code (#82 by @JordanMartinez)
 
 ## [v10.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v10.0.0) - 2021-02-26
 
