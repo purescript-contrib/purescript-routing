@@ -1,10 +1,8 @@
 { name = "routing"
 , dependencies =
-  [ "aff"
-  , "arrays"
+  [ "arrays"
   , "assert"
   , "bifunctors"
-  , "console"
   , "control"
   , "effect"
   , "either"
