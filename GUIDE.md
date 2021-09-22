@@ -111,7 +111,6 @@ And now finally, we need to extract multiple segments for `PostBrowse`.
 ```purescript
 postBrowse :: Match MyRoute
 postBrowse =
-  PostBrowse <$> (lit "posts" *> str) <*> str
   PostBrowse <$> (lit "posts" *> lit "browse" *> int) <*> str
 ```
 
