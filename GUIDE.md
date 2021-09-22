@@ -350,8 +350,8 @@ main = do
 
 Using the following routes with a `newtype`:
 ```purescript
-newtype PostId = PostID Int
-derive instance newtypePostID :: Newtype PostId _
+newtype PostId = PostId Int
+derive instance newtypePostId :: Newtype PostId _
 
 data MyRoute
   = PostIndex
@@ -360,21 +360,21 @@ data MyRoute
   | PostBrowse String String
 ```
 
-It is possible to warp an `int` route parameter into a `PostId` using the
+It is possible to wrap an `int` route parameter into a `PostId` using the
 following function:
 ```purescript
 postId :: forall f. MatchClass f => f PostId
-postId = pure wrap <*> int
+postId = PostId <*> int
 ```
 
-The created `postId` function can then be used like the `str` function.
+The created `postId` function can then be used like the `parser` function.
 ```purescript
 myRoute :: Match MyRoute
 myRoute =
   root *> lit "posts" *> oneOf
     [ PostEdit <$> postId <* lit "edit"
     , Post <$> postId
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     , pure PostIndex
     ] <* end
 ```
