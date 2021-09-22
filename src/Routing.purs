@@ -1,27 +1,20 @@
 module Routing
-  ( RoutingEffects
-  , match
+  ( match
   , matchWith
   ) where
 
 import Prelude
 
-import Control.Monad.Eff.Ref (REF)
 import Data.Either (Either)
-import DOM (DOM)
-import Global (decodeURIComponent)
+import Data.Maybe (fromJust)
+import JSURI (decodeURIComponent)
+import Partial.Unsafe(unsafePartial)
 import Routing.Match (Match, runMatch)
 import Routing.Parser (parse)
 
-type RoutingEffects eff =
-  ( dom :: DOM
-  , ref :: REF
-  | eff
-  )
-
 -- | Runs a `Match` parser.
 match :: forall a. Match a -> String -> Either String a
-match = matchWith decodeURIComponent
+match = matchWith $ unsafePartial fromJust <<< decodeURIComponent
 
 -- | Runs a `Match` parser given a custom String decoder.
 matchWith :: forall a. (String -> String) -> Match a -> String -> Either String a

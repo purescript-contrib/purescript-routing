@@ -38,7 +38,7 @@ data MyRoute
   = PostIndex
   | Post PostId
   | PostEdit PostId
-  | PostBrowse String String
+  | PostBrowse Int String
 ```
 
 By using a data type, we can use `case` analysis to guarantee that we've
@@ -47,14 +47,13 @@ If you can only construct a URL from your route, then it's impossible to
 construct an invalid URL.
 
 To turn a stringy path into our data type, we need to define a parser using
-combinators in `Routing.Match.Class` as well as standard `Applicative` and
+combinators in `Routing.Match` as well as standard `Applicative` and
 `Alternative` combinators.
 
 ```purescript
 import Prelude
 import Control.Alternative ((<|>))
-import Routing.Match (Match)
-import Routing.Match.Class (lit, int, str, end)
+import Routing.Match (Match, lit, int, str, end)
 ```
 
 The available `Match` combinators are:
@@ -95,7 +94,7 @@ post =
 
 postEdit :: Match MyRoute
 postEdit =
-  PostEdit <$> (lit "posts" *> int <* lit "edit")
+  PostEdit <$> (lit "posts" *> int) <* lit "edit"
 ```
 
 Note the use of the `*>` and `<*` operators. These let us direct the focus of
@@ -103,12 +102,17 @@ the value we want to consume. In `postEdit`, we want to consume the `int`,
 but we also need to match the "edit" suffix. The arrows point to the value we
 want.
 
+Note that in general parentheses are required when using `*>` since the
+operator precedence is not what is required (resulting in type errors
+otherwise.)
+
 And now finally, we need to extract multiple segments for `PostBrowse`.
 
 ```purescript
 postBrowse :: Match MyRoute
 postBrowse =
   PostBrowse <$> (lit "posts" *> str) <*> str
+  PostBrowse <$> (lit "posts" *> lit "browse" *> int) <*> str
 ```
 
 The `<*>` combinator has arrows on both sides because we want both values.
@@ -146,8 +150,8 @@ myRoute :: Match MyRoute
 myRoute = oneOf
   [ PostIndex <$ lit "posts"
   , Post <$> (lit "posts" *> int)
-  , PostEdit <$> (lit "posts" *> int <* lit "edit")
-  , PostBrowse <$> (lit "posts" *> str) <*> str
+  , PostEdit <$> (lit "posts" *> int) <* lit "edit"
+  , PostBrowse <$> (lit "posts" *> lit "browse" *> int) <*> str
   ]
 ```
 
@@ -163,7 +167,7 @@ myRoute =
     [ pure PostIndex
     , Post <$> int
     , PostEdit <$> int <* lit "edit"
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     ]
 ```
 
@@ -182,7 +186,7 @@ myRoute =
     [ PostIndex <$ end
     , Post <$> int <* end
     , PostEdit <$> int <* lit "edit" <* end
-    , PostBrowse <$> str <*> str <* end
+    , PostBrowse <$> (lit "browse" *> int) <*> str <* end
     ]
 ```
 
@@ -196,7 +200,7 @@ myRoute =
   lit "posts" *> oneOf
     [ PostEdit <$> int <* lit "edit"
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     , pure PostIndex
     ] <* end
 ```
@@ -214,7 +218,7 @@ myRoute =
   root *> lit "posts" *> oneOf
     [ PostEdit <$> int <* lit "edit"
     , Post <$> int
-    , PostBrowse <$> str <*> str
+    , PostBrowse <$> (lit "browse" *> int) <*> str
     , pure PostIndex
     ] <* end
 ```
@@ -231,21 +235,24 @@ matchMyRoute = match myRoute
 test1 = matchMyRoute "/posts"
 test2 = matchMyRoute "/posts/12"
 test3 = matchMyRoute "/posts/12/edit"
-test4 = matchMyRoute "/psots/bad"
+test4 = matchMyRoute "/posts/browse/2004/June"
+test5 = matchMyRoute "/psots/bad"
 ```
 
 ## Routing events with `Routing.Hash`
 
 Now that we have a parser, we'll want to respond to events and fire a
 callback like in our original example. `purescript-routing` supports
-hash-based routing via `Routing.Hash`.
+hash-based routing via `Routing.Hash`. Hash-based routing uses anchors
+(`#` or "hash" character) to specify the routes.
+For example: `www.example.com/#posts/12/edit`.
 
 ```purescript
 import Routing.Hash (matches)
 import MyRoute (myRoute)
 ```
 
-The `matches` combinator takes a `Match` parser and an `Eff` callback,
+The `matches` combinator takes a `Match` parser and an `Effect` callback,
 providing the previously matched route (wrapped in `Maybe` since it may be
 the initial route) and the currently matched route. You might use this
 callback to push an input to an instance of a running application.
@@ -282,6 +289,9 @@ Alternatively, we could explicitly add a `NotFound` constructor to `MyRoute`.
 
 ## Routing events with `Routing.PushState`
 
+PushState-based routing *avoids* the use of anchors (`#`) to specify the routes.
+For example: `www.example.com/posts/12/edit`.
+
 Routing with `Routing.PushState` is similar to hash-based routing except that
 we must first create an interface. Browsers don't handle location events
 directly, so the interface needs to do some bookkeeping of it's own for
@@ -307,12 +317,12 @@ Use the created interface to push new states and routes. States are always
 provide a well-typed interface with any guarantees.
 
 ```purescript
-import Data.Foreign (toForeign)
+import Foreign (unsafeToForeign)
 
 main = do
   nav <- makeInterface
   ...
-  nav.pushState (toForeign {}) "/about"
+  nav.pushState (unsafeToForeign {}) "/about"
 ```
 
 One option is to use `purescript-simple-json` which provides easy codecs to

@@ -2,23 +2,22 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Effect (Effect)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.Foldable (oneOf)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
 import Data.List as L
 import Data.Map as M
+import Data.Show.Generic (genericShow)
 import Data.String.NonEmpty (NonEmptyString)
 import Data.String.NonEmpty as NES
 import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafePartial)
 import Routing (match)
 import Routing.Match (Match, bool, end, int, list, lit, nonempty, num, param, params, str)
-import Test.Assert (ASSERT, assertEqual)
+import Test.Assert (assertEqual)
 
 data MyRoutes
   = Foo Number (M.Map String String)
@@ -36,7 +35,7 @@ instance showMyRoutes :: Show MyRoutes where show = genericShow
 routing :: Match MyRoutes
 routing = oneOf
   [ Foo <$> (lit "foo" *> num) <*> params
-  , Bar <$> (lit "bar" *> bool) <*> (param "baz")
+  , Bar <$> (lit "bar" *> bool) <*> (param "baz") <* end
   , Baz <$> (lit "list" *> list num)
   , Quux <$> (lit "" *> lit "quux" *> int)
   , Corge <$> (lit "corge" *> str)
@@ -44,7 +43,7 @@ routing = oneOf
   , End <$> (lit "" *> int <* end)
   ]
 
-main :: Eff (assert :: ASSERT, console :: CONSOLE) Unit
+main :: Effect Unit
 main = do
   assertEqual
     { actual: match routing "foo/12/?welp='hi'&b=false"
@@ -57,6 +56,10 @@ main = do
   assertEqual
     { actual: match routing "bar/true?baz=test"
     , expected: Right (Bar true "test")
+    }
+  assertEqual
+    { actual: lmap (const unit) (match routing "bar/true?baz=test&oof=true")
+    , expected: Left unit
     }
   assertEqual
     { actual: match routing "bar/false?baz=%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%84%D0%B0%D0%B9%D0%BB"

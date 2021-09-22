@@ -1,9 +1,14 @@
-/.*
-!/.gitignore
-!/.travis.yml
-/bower_components/
-/node_modules/
-/output/
-/public/test.js
-/test/dist
+.*
+!.gitignore
+!.github
+!.editorconfig
+
+output
+generated-docs
+bower_components
+node_modules
 package-lock.json
+
+# Extra files
+public/test.js
+test/dist
