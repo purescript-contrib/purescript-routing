@@ -11,6 +11,7 @@ New features:
 Bugfixes:
 
 Other improvements:
+- Update readme to show how to use newtypes (#57 by @brodeuralexis and @JordanMartinez)
 
 ## [v10.0.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v10.0.1) - 2021-05-06
 

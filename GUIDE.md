@@ -82,7 +82,7 @@ no interesting values we want to consume, we can use `<$` from `Prelude`.
 ```purescript
 postIndex :: Match MyRoute
 postIndex =
-  PostIndex <$ lit "posts
+  PostIndex <$ lit "posts"
 ```
 
 Our next routes require extracting an integer `PostId`.
@@ -344,4 +344,37 @@ main = do
   listener location = case read location.state of
     Right { foo, bar } -> ...
     Left errors -> ...
+```
+
+## Using `newtype` in routes
+
+Using the following routes with a `newtype`:
+```purescript
+newtype PostId = PostId Int
+derive instance newtypePostId :: Newtype PostId _
+
+data MyRoute
+  = PostIndex
+  | Post PostId
+  | PostEdit PostId
+  | PostBrowse String String
+```
+
+It is possible to wrap an `int` route parameter into a `PostId` using the
+following function:
+```purescript
+postId :: forall f. MatchClass f => f PostId
+postId = PostId <*> int
+```
+
+The created `postId` function can then be used like the `parser` function.
+```purescript
+myRoute :: Match MyRoute
+myRoute =
+  root *> lit "posts" *> oneOf
+    [ PostEdit <$> postId <* lit "edit"
+    , Post <$> postId
+    , PostBrowse <$> (lit "browse" *> int) <*> str
+    , pure PostIndex
+    ] <* end
 ```
