@@ -44,7 +44,7 @@ type TestInterface =
 
 withTest :: (TestInterface -> Effect Unit) -> Effect Unit
 withTest k = do
-  doc  <- window >>= Window.document
+  doc <- window >>= Window.document
   body <- HTMLDocument.body doc >>= maybe (throwException (error "Body not found")) pure
 
   let
@@ -82,30 +82,28 @@ withTest k = do
 
     assertEq :: forall a. Show a => Eq a => String -> a -> a -> Effect Unit
     assertEq testName a b = do
-      if a == b
-        then do
-          void $ flip Node.appendChild (HTMLElement.toNode body) =<< renderSuccess testName
-        else do
-          let err = show a <> " /= " <> show b
-          _ <- flip Node.appendChild (HTMLElement.toNode body) =<< renderError testName err
-          throwException (error $ testName <> ": " <> err)
+      if a == b then do
+        void $ flip Node.appendChild (HTMLElement.toNode body) =<< renderSuccess testName
+      else do
+        let err = show a <> " /= " <> show b
+        _ <- flip Node.appendChild (HTMLElement.toNode body) =<< renderError testName err
+        throwException (error $ testName <> ": " <> err)
 
     assert :: String -> Boolean -> Effect Unit
     assert testName = assertEq testName true
 
   k { assert, assertEq }
 
-
 runHashTests :: Effect Unit -> Effect Unit
 runHashTests next = withTest \{ assert } -> do
   doneRef <- Ref.new (pure unit)
   let done = join (Ref.read doneRef) *> next
   flip Ref.write doneRef =<< hashes case _, _ of
-    Nothing, ""   -> assert "Hashes: Initial value" true
-    Just "", "a"  -> assert "Hashes: ? -> a" true *> setHash "b"
+    Nothing, "" -> assert "Hashes: Initial value" true
+    Just "", "a" -> assert "Hashes: ? -> a" true *> setHash "b"
     Just "a", "b" -> assert "Hashes: a -> b" true *> setHash ""
-    Just "b", ""  -> assert "Hashes: b -> ?" true *> done
-    _, _          -> assert "Hashes: fail" false
+    Just "b", "" -> assert "Hashes: b -> ?" true *> done
+    _, _ -> assert "Hashes: fail" false
   setHash "a"
 
 runPushStateTests :: Effect Unit
@@ -157,4 +155,4 @@ main = do
   listener <- eventListener \_ -> runHashTests runPushStateTests
   window
     >>= Window.toEventTarget
-    >>> addEventListener load listener false
+      >>> addEventListener load listener false

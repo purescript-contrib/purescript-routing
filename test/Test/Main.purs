@@ -30,7 +30,8 @@ data MyRoutes
 
 derive instance eqMyRoutes :: Eq MyRoutes
 derive instance genericMyRoutes :: Generic MyRoutes _
-instance showMyRoutes :: Show MyRoutes where show = genericShow
+instance showMyRoutes :: Show MyRoutes where
+  show = genericShow
 
 routing :: Match MyRoutes
 routing = oneOf
@@ -47,11 +48,11 @@ main :: Effect Unit
 main = do
   assertEqual
     { actual: match routing "foo/12/?welp='hi'&b=false"
-    , expected: Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"]))
+    , expected: Right (Foo 12.0 (M.fromFoldable [ Tuple "welp" "'hi'", Tuple "b" "false" ]))
     }
   assertEqual
     { actual: match routing "foo/12?welp='hi'&b=false"
-    , expected: Right (Foo 12.0 (M.fromFoldable [Tuple "welp" "'hi'", Tuple "b" "false"]))
+    , expected: Right (Foo 12.0 (M.fromFoldable [ Tuple "welp" "'hi'", Tuple "b" "false" ]))
     }
   assertEqual
     { actual: match routing "bar/true?baz=test"
@@ -91,11 +92,11 @@ main = do
     }
   assertEqual
     { actual: match routing "list/123/"
-    , expected: Right (Baz (L.fromFoldable [123.0]))
+    , expected: Right (Baz (L.fromFoldable [ 123.0 ]))
     }
   assertEqual
     { actual: match routing "list/123/456"
-    , expected: Right (Baz (L.fromFoldable [123.0, 456.0]))
+    , expected: Right (Baz (L.fromFoldable [ 123.0, 456.0 ]))
     }
   assertEqual
     { actual: match routing "list/"
@@ -111,5 +112,5 @@ main = do
     }
   assertEqual
     { actual: match routing "foo/0/?test=a/b/c"
-    , expected: Right (Foo 0.0 (M.fromFoldable [Tuple "test" "a/b/c"]))
+    , expected: Right (Foo 0.0 (M.fromFoldable [ Tuple "test" "a/b/c" ]))
     }

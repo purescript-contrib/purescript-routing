@@ -41,10 +41,11 @@ instance matchAlternative :: Alternative Match
 instance matchApply :: Apply Match where
   apply (Match r2a2b) (Match r2a) =
     Match $ (\r -> validation (processFnErr r) processFnRes (r2a2b r))
-    where processFnErr r err =
-            invalid $ err * validation identity (const one) (r2a r)
-          processFnRes (Tuple rs a2b) =
-            validation invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
+    where
+    processFnErr r err =
+      invalid $ err * validation identity (const one) (r2a r)
+    processFnRes (Tuple rs a2b) =
+      validation invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
 instance matchApplicative :: Applicative Match where
   pure a = Match \r -> pure $ Tuple r a
@@ -61,7 +62,7 @@ lit input = Match \route ->
     Cons (Path i) rs | i == input ->
       pure $ Tuple rs unit
     Cons (Path _) _ ->
-      invalid $ free $  UnexpectedPath input
+      invalid $ free $ UnexpectedPath input
     _ ->
       invalid $ free ExpectedPathPart
 
@@ -119,9 +120,8 @@ param key = Match \route ->
         Just el -> do
           let remainingParams = M.delete key map
           pure $
-            if M.isEmpty remainingParams
-              then Tuple rs el
-              else Tuple (Cons (Query remainingParams) rs) el
+            if M.isEmpty remainingParams then Tuple rs el
+            else Tuple (Cons (Query remainingParams) rs) el
     _ ->
       invalid $ free ExpectedQuery
 
@@ -158,12 +158,13 @@ nonempty =
 list :: forall a. Match a -> Match (List a)
 list (Match r2a) =
   Match $ go Nil
-  where go :: List a -> Route -> V (Free MatchError) (Tuple Route (List a))
-        go accum r =
-          validation
-          (const $ pure (Tuple r (reverse accum)))
-          (\(Tuple rs a) -> go (Cons a accum) rs)
-          (r2a r)
+  where
+  go :: List a -> Route -> V (Free MatchError) (Tuple Route (List a))
+  go accum r =
+    validation
+      (const $ pure (Tuple r (reverse accum)))
+      (\(Tuple rs a) -> go (Cons a accum) rs)
+      (r2a r)
 
 -- It groups `Free MatchError` -> [[MatchError]] -map with showMatchError ->
 -- [[String]] -fold with semicolon-> [String] -fold with newline-> String
@@ -174,8 +175,7 @@ runMatch (Match fn) route =
   foldErrors errs =
     Left $ foldl (\b a -> a <> "\n" <> b) "" do
       es <- reverse <$> unwrap errs
-      pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$>  es
-
+      pure $ foldl (\b a -> a <> ";" <> b) "" $ showMatchError <$> es
 
 -- | if we match something that can fail then we have to
 -- | match `Either a b`. This function converts matching on such

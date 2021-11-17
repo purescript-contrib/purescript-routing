@@ -8,7 +8,7 @@ import Prelude
 import Data.Either (Either)
 import Data.Maybe (fromJust)
 import JSURI (decodeURIComponent)
-import Partial.Unsafe(unsafePartial)
+import Partial.Unsafe (unsafePartial)
 import Routing.Match (Match, runMatch)
 import Routing.Parser (parse)
 

@@ -5,23 +5,23 @@ import Prelude ((<>))
 data MatchError
   -- expected other path part
   = UnexpectedPath String
-    -- expected "true" or "false"
+  -- expected "true" or "false"
   | ExpectedBoolean
-    -- expected end
+  -- expected end
   | ExpectedEnd
-    -- expected numeric literal
+  -- expected numeric literal
   | ExpectedNumber
-    -- expected integer literal
+  -- expected integer literal
   | ExpectedInt
-    -- expected string literal (found query probably or eol)
+  -- expected string literal (found query probably or eol)
   | ExpectedString
-    -- expected query found path part or eol
+  -- expected query found path part or eol
   | ExpectedQuery
-    -- expected path part found query or eol
+  -- expected path part found query or eol
   | ExpectedPathPart
-    -- there is no such key in query
+  -- there is no such key in query
   | KeyNotFound String
-    -- custom fail
+  -- custom fail
   | Fail String
 
 showMatchError :: MatchError -> String
