@@ -19,11 +19,11 @@ parseQueryPart :: (String -> String) -> String -> Maybe (M.Map String String)
 parseQueryPart decoder =
   map M.fromFoldable <<< traverse part2tuple <<< S.split (S.Pattern "&")
   where
-    part2tuple :: String -> Maybe (Tuple String String)
-    part2tuple input = do
-      let keyVal = decoder <$> S.split (S.Pattern "=") input
-      guard $ A.length keyVal <= 2
-      Tuple <$> A.head keyVal <*> keyVal A.!! 1
+  part2tuple :: String -> Maybe (Tuple String String)
+  part2tuple input = do
+    let keyVal = decoder <$> S.split (S.Pattern "=") input
+    guard $ A.length keyVal <= 2
+    Tuple <$> A.head keyVal <*> keyVal A.!! 1
 
 -- | Parse hash string to `Route` with `decoder` function
 -- | applied to every hash part (usually `decodeURIComponent`)
@@ -36,10 +36,8 @@ parse decoder hash =
     Nothing ->
       pathParts hash
   where
-    pathParts str =
-      let
-        parts = L.fromFoldable $ map (Path <<< decoder) (S.split (S.Pattern "/") str)
-      in
-        case L.unsnoc parts of
-          Just { init, last: Path "" } -> init
-          _ -> parts
+  pathParts str = do
+    let parts = L.fromFoldable $ map (Path <<< decoder) (S.split (S.Pattern "/") str)
+    case L.unsnoc parts of
+      Just { init, last: Path "" } -> init
+      _ -> parts

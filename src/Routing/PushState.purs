@@ -91,6 +91,7 @@ makeInterface = do
   -- interface to behave as similarly as possible, so we use `makeImmediate`
   -- which will execute `notify` maximum once per event loop.
   schedule <- makeImmediate $ notify =<< locationState
+
   let
     stateFn op state path = do
       DOM.window
@@ -102,7 +103,7 @@ makeInterface = do
 
   DOM.window
     >>= Window.toEventTarget
-    >>> DOM.addEventListener ET.popstate listener false
+      >>> DOM.addEventListener ET.popstate listener false
 
   pure
     { pushState: stateFn History.pushState
@@ -188,17 +189,17 @@ matchesWith parser cb = foldPaths go (go Nothing)
 -- | from: https://github.com/natefaubion/purescript-spork/blob/3b56c4d36e84866ed9b1bc27afa7ab4762ffdd01/src/Spork/Scheduler.purs#L20
 makeImmediate :: Effect Unit -> Effect (Effect Unit)
 makeImmediate run = do
-  document ←
+  document <-
     DOM.window
       >>= Window.document
-      >>> map HTMLDocument.toDocument
-  nextTick ← Ref.new (Right 0)
-  obsvNode ← Text.toNode <$> DOM.createTextNode "" document
-  observer ← DOM.mutationObserver \_ _ → do
+        >>> map HTMLDocument.toDocument
+  nextTick <- Ref.new (Right 0)
+  obsvNode <- Text.toNode <$> DOM.createTextNode "" document
+  observer <- DOM.mutationObserver \_ _ -> do
     Ref.modify_ (either (Right <<< add 1) Right) nextTick
     run
   DOM.observe obsvNode { characterData: true } observer
   pure do
-    Ref.read nextTick >>= traverse_ \tick → do
+    Ref.read nextTick >>= traverse_ \tick -> do
       Ref.write (Left (tick + 1)) nextTick
       DOM.setNodeValue (show tick) obsvNode
