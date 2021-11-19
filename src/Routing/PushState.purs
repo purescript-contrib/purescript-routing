@@ -91,6 +91,7 @@ makeInterface = do
   -- interface to behave as similarly as possible, so we use `makeImmediate`
   -- which will execute `notify` maximum once per event loop.
   schedule <- makeImmediate $ notify =<< locationState
+
   let
     stateFn op state path = do
       DOM.window

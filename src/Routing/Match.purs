@@ -44,6 +44,7 @@ instance matchApply :: Apply Match where
     where
     processFnErr r err =
       invalid $ err * validation identity (const one) (r2a r)
+
     processFnRes (Tuple rs a2b) =
       validation invalid (\(Tuple rss a) -> pure $ Tuple rss (a2b a)) (r2a rs)
 
