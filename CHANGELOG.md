@@ -5,6 +5,7 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
+- Update project and deps to PureScript v0.15.0 (#86 by @JordanMartinez)
 
 New features:
 

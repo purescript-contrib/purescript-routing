@@ -18,7 +18,6 @@
   , "ordered-collections"
   , "partial"
   , "prelude"
-  , "psci-support"
   , "record"
   , "refs"
   , "semirings"
