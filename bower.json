@@ -31,7 +31,7 @@
     "purescript-either": "master",
     "purescript-foldable-traversable": "master",
     "purescript-integers": "master",
-    "purescript-js-uri": "main",
+    "purescript-js-uri": "https://github.com/purescript-contrib/purescript-js-uri.git#main",
     "purescript-lists": "master",
     "purescript-maybe": "master",
     "purescript-numbers": "master",
