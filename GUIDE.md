@@ -7,7 +7,7 @@
 
 ## Parsing routes with `Routing.Match`
 
-In many routing frameworks, you might start by using a stringly-typed DSL for
+In many routing frameworks, you might start by using a strongly-typed DSL for
 paths:
 
 ```js
