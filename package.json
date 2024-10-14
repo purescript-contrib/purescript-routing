@@ -6,5 +6,8 @@
   },
   "devDependencies": {
     "node-static": "^0.7.11"
-  }
+  },
+  "authors": [
+    "Maxim Zimaliev <zimaliev@yandex.ru>"
+  ]
 }
