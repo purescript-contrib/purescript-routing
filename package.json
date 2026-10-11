@@ -1,10 +1,12 @@
 {
   "private": true,
   "scripts": {
-    "test:browser": "spago bundle-app -m Test.Browser --to test/dist/bundle.js",
+    "test:browser": "spago build && esbuild output/Test.Browser/index.js --bundle --platform=browser --format=iife --global-name=RoutingTests --footer:js='RoutingTests.main();' --outfile=test/dist/bundle.js",
     "test:serve": "static test"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
+    "spago": "^1.0.4",
     "node-static": "^0.7.11"
   }
 }
