@@ -1,0 +1,43 @@
+package:
+  name: routing
+  dependencies:
+    - arrays: ">=7.0.0 <8.0.0"
+    - control: ">=6.0.0 <7.0.0"
+    - effect: ">=4.0.0 <5.0.0"
+    - either: ">=6.0.0 <7.0.0"
+    - foldable-traversable: ">=6.0.0 <7.0.0"
+    - foreign: ">=7.0.0 <8.0.0"
+    - integers: ">=6.0.0 <7.0.0"
+    - js-uri: ">=3.0.0 <4.0.0"
+    - lists: ">=7.0.0 <8.0.0"
+    - maybe: ">=6.0.0 <7.0.0"
+    - newtype: ">=5.0.0 <6.0.0"
+    - numbers: ">=9.0.0 <10.0.0"
+    - ordered-collections: ">=3.0.0 <4.0.0"
+    - partial: ">=4.0.0 <5.0.0"
+    - prelude: ">=6.0.0 <7.0.0"
+    - refs: ">=6.0.0 <7.0.0"
+    - semirings: ">=7.0.0 <8.0.0"
+    - strings: ">=6.0.0 <7.0.0"
+    - tuples: ">=7.0.0 <8.0.0"
+    - validation: ">=6.0.0 <7.0.0"
+    - web-dom: ">=6.0.0 <7.0.0"
+    - web-events: ">=4.0.0 <5.0.0"
+    - web-html: ">=4.0.0 <5.0.0"
+  test:
+    main: Test.Main
+    dependencies:
+      - assert: ">=6.0.0 <7.0.0"
+      - bifunctors: ">=6.0.0 <7.0.0"
+      - exceptions: ">=6.0.0 <7.0.0"
+      - record: ">=4.0.0 <5.0.0"
+      - transformers: ">=6.0.0 <7.0.0"
+  publish:
+    version: 11.0.1
+    license: Apache-2.0
+    location:
+      githubOwner: purescript-contrib
+      githubRepo: purescript-routing
+workspace:
+  packageSet:
+    registry: 81.4.0
