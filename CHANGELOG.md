@@ -11,6 +11,10 @@ New features:
 Bugfixes:
 
 Other improvements:
+
+## [v11.0.1](https://github.com/purescript-contrib/purescript-routing/releases/tag/v11.0.1) - 2026-10-10
+
+Other improvements:
 - Migrate to registry-backed Spago, preserving published dependency ranges, and update repository tooling and CI actions.
 
 ## [v11.0.0](https://github.com/purescript-contrib/purescript-routing/releases/tag/v11.0.0) - 2022-04-27

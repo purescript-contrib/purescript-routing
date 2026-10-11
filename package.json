@@ -6,7 +6,6 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "spago": "^1.0.4",
     "node-static": "^0.7.11"
   }
 }
